@@ -1,0 +1,75 @@
+name: kop chao test
+on:
+  workflow_dispatch:
+    inputs:
+      as-platform-image-tag:
+        description: 'Please input as-platform image tag'
+        required: true
+        default: '2.10.7.3'
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JAVA_VERSION: 17
+  JAVA_DISTRIBUTION: temurin
+  GITHUB_TOKEN: ${{ secrets.AS_GITHUB_TOKEN }}
+  GIT_AUTHOR_NAME: github-actions[bot]
+  GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+  GIT_COMMITTER_NAME: github-actions[bot]
+  GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+
+jobs:
+  asp-prducts-release:
+    runs-on: ubuntu-latest
+    env:
+      REPO_PATH: ${{ github.workspace }}
+      RELEASE_BRANCH: ${{ github.event.inputs.branch }}
+      AS_PLATFORM_IMAGE_TAG: ${{ github.event.inputs.as-platform-image-tag }}
+      REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
+
+    steps:
+      - name: Checkout chao-test codebase
+        uses: actions/checkout@v3
+        with:
+          repository: ascentstream/chao-test
+          path: ../chao-test
+          ref: ${{ github.event.inputs.branch }}
+          token: ${{ env.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
+          password: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
+
+      - uses: helm/kind-action@v1.5.0
+        with:
+          cluster_name: kind
+          kubectl_version: v1.25.5
+
+      - name: deploy as-platform
+        run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
+
+      - name: encode chaos-mesh config
+        run: echo "CFG_BASE64=$(base64 -w0 deploy/chaos-mesh/chaos-mesh.yaml)" >> $GITHUB_ENV
+
+      - name: run chaos-mesh
+        uses: chaos-mesh/chaos-mesh-action@master # v0.5 is broken
+        env:
+            CHAOS_MESH_VERSION: v2.7.0
+
+      - name: Wait for workflow completion
+        run: sleep 30
+
+      - name: Print pods
+        run: kubectl -n pulsar-cluster get pods

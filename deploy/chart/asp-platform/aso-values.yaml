@@ -1,0 +1,126 @@
+# Copyright [2023] [AscentStream]. All rights reserved.
+#
+# Licensed under the [Your License Name] License.
+# You may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# [http://ascentstream.com/]
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# For questions and inquiries, please contact [Your Contact Email].
+
+# Default values for asp-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+## Namespace to deploy operator
+# NOTE: Make the default namespace as empty. So it will fallback to use the namespace used for installing the helm
+#       chart. Helm does not position it self as a namespace manager, as namespaces in kubernetes are considered as
+#       a higher control structure that is not part of the application.
+namespace: ""
+namespaceCreate: false
+
+operator:
+  image:
+    repository: "ascentstream/asp-operator"
+    tag: "v0.3.3"
+    pullPolicy: "IfNotPresent"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+  livenessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /healthz
+      port: 8081
+      scheme: HTTP
+    initialDelaySeconds: 15
+    periodSeconds: 20
+    successThreshold: 1
+    timeoutSeconds: 1
+  readinessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /readyz
+      port: 8081
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+  extraEnv: []
+
+kubeRbacProxy:
+  image:
+    repository: "ascentstream/kube-rbac-proxy"
+    tag: "v0.13.1"
+    pullPolicy: "IfNotPresent"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 5m
+      memory: 64Mi
+
+imagePullSecrets:
+  - name: regcred
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "asp-manager"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8443
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+workers: 1
+terminationGracePeriodSeconds: 10
+rbac:
+  create: true
+
+crds:
+  install: true
+  bookkeeper:
+    create: false
+  broker:
+    create: false
+  proxy:
+    create: false
+  zookeeper:
+    create: false
