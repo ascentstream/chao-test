@@ -22,5 +22,4 @@ spec:
           namespaces:
             - pulsar-cluster
           labelSelectors:
-            cluster: pulsar-asp
             platform.ascentstream.com/app: pulsar

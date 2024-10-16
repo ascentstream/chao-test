@@ -69,7 +69,7 @@ jobs:
             CHAOS_MESH_VERSION: v2.7.0
 
       - name: Wait for workflow completion
-        run: sleep 30
+        run: sleep 120
 
       - name: Print pods
         run: kubectl -n pulsar-cluster get pods
