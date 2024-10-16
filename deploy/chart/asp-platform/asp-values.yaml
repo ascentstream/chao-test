@@ -880,7 +880,7 @@ bookkeeper:
   gracePeriod: 30
   resources:
     requests:
-      memory: "1024Mi"
+      memory: "2048Mi"
       cpu: "1"
     # limits:
     #   memory: "2Gi"
@@ -911,7 +911,7 @@ bookkeeper:
       numVolumes: 1
       numDirsPerVolume: 1
       name: journal
-      size: 512Mi
+      size: 2048Mi
       # storageClassName: ""
       ## If the storage class is left undefined when using persistence
       ## the default storage class for the cluster will be used.
@@ -929,7 +929,7 @@ bookkeeper:
       #     iopsPerGB: "50"
     ledgers:
       name: ledgers
-      size: 2048Mi
+      size: 4096Mi
       # It determines the directory of ledgers data
       numVolumes: 1
       numDirsPerVolume: 1
@@ -952,8 +952,8 @@ bookkeeper:
     memoryOptions:
     - >
       -Xms1024m
-      -Xmx1024m
-      -XX:MaxDirectMemorySize=1024m
+      -Xmx2048m
+      -XX:MaxDirectMemorySize=2048m
     gcOptions:
     - >
       -XX:+UseG1GC
@@ -1211,7 +1211,7 @@ broker:
   # See https://kubernetes.io/docs/concepts/workloads/pods/init-containers/#resources
   resources:
     requests:
-      memory: "1024Mi"
+      memory: "2048Mi"
       cpu: "1"
     limits: {}
       # memory: "2Gi"
@@ -1266,7 +1266,7 @@ broker:
   jvm:
     memoryOptions:
       - >
-        -Xms1024m -Xmx1024m -XX:MaxDirectMemorySize=1024m
+        -Xms1024m -Xmx2048m -XX:MaxDirectMemorySize=2048m
     gcOptions:
       - >
         -XX:+UseG1GC
