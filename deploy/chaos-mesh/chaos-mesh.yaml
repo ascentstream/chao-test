@@ -12,7 +12,7 @@ spec:
       children:
         - pod-kill
     - name: pod-kill
-      deadline: 30s
+      deadline: 60s
       templateType: PodChaos
       podChaos:
         action: pod-kill
@@ -22,5 +22,5 @@ spec:
           namespaces:
             - pulsar-cluster
           labelSelectors:
-            app.kubernetes.io/name: pulsar-cluster
-            app.kubernetes.io/component: server
+            cluster: pulsar-asp
+            platform.ascentstream.com/app: pulsar
