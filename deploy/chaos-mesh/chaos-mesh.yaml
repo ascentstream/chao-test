@@ -3,7 +3,7 @@
 apiVersion: chaos-mesh.org/v1alpha1
 kind: Workflow
 metadata:
-  name: oxia
+  name: asp-platform
 spec:
   entry: entry
   templates:
@@ -22,5 +22,5 @@ spec:
           namespaces:
             - pulsar-cluster
           labelSelectors:
-            app.kubernetes.io/name: pulsar-cluster
-            app.kubernetes.io/component: server
+            cluster: pulsar-asp
+            platform.ascentstream.com/app: pulsar

@@ -1076,7 +1076,7 @@ broker:
   # use a component name that matches your grafana configuration
   # so the metrics are correctly rendered in grafana dashboard
   component: broker
-  replicaCount: 1
+  replicaCount: 2
   ports:
     http: 8080
     https: 8443
@@ -1297,6 +1297,13 @@ broker:
     PULSAR_PREFIX_topicLevelPoliciesEnabled: "true"
     PULSAR_PREFIX_messageTraceFilter: ".*"
     PULSAR_PREFIX_messageTraceOutputTopic: "persistent://as/system/pulsar-message-trace"
+    PULSAR_PREFIX_entryFormat: "kafka"
+    PULSAR_PREFIX_exposingBrokerEntryMetadataToClientEnabled: "true"
+    PULSAR_PREFIX_offsetsTopicNumPartitions: "8"
+    PULSAR_PREFIX_kafkaTxnLogTopicNumPartitions: "8"
+    PULSAR_PREFIX_kafkaTxnProducerStateTopicNumPartitions: "1"
+    brokerDeleteInactiveTopicsEnabled: "false"
+    brokerDeduplicationEnabled: "true"
   ### Broker service account
   ## templates/broker-service-account.yaml
   # deprecated: use `serviceAccount` section to configure service account.
