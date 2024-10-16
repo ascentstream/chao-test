@@ -11,15 +11,29 @@ spec:
       templateType: Serial
       children:
         - pod-kill
+        - pod-failure
     - name: pod-kill
-      deadline: 30s
+      deadline: 10s
       templateType: PodChaos
       podChaos:
         action: pod-kill
-        gracePeriod: 0
-        mode: one
+        gracePeriod: 3
+        mode: fixed-percent
+        value: '50'
         selector:
           namespaces:
             - pulsar-cluster
           labelSelectors:
-            platform.ascentstream.com/app: pulsar
+            cluster: pulsar-asp
+    - name: pod-failure
+      deadline: 30s
+      templateType: PodChaos
+      podChaos:
+        action: pod-failure
+        mode: fixed-percent
+        value: '30'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
