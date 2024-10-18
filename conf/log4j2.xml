@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="info">
+  <Properties>
+    <Property name="log_path">../logs/</Property>
+  </Properties>
+
+  <Appenders>
+
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d - %m%n"/>
+    </Console>
+
+    <RollingFile name="KafkaDailyRollingFile" fileName="${log_path}/kafka_client.log"
+                 filePattern="${log_path}/kafka_client%d{yyyy-MM-dd}.log">
+      <PatternLayout pattern="[%d][%t][%p][%c:%L] %m%n"/>
+      <Policies>
+        <TimeBasedTriggeringPolicy interval="1"/>
+        <SizeBasedTriggeringPolicy size="10 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="20">
+        <Delete basePath="${log_path}/" maxDepth="2">
+          <IfFileName glob="*">
+            <IfLastModified age="7d">
+            </IfLastModified>
+          </IfFileName>
+        </Delete>
+      </DefaultRolloverStrategy>
+    </RollingFile>
+
+    <RollingFile name="PulsarDailyRollingFile" fileName="${log_path}/pulsar_client.log"
+                 filePattern="${log_path}/pulsar_client_%d{yyyy-MM-dd}.log">
+      <PatternLayout pattern="[%d][%t][%p][%c:%L] %m%n"/>
+      <Policies>
+        <TimeBasedTriggeringPolicy interval="1"/>
+        <SizeBasedTriggeringPolicy size="10 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="20">
+        <Delete basePath="${log_path}/" maxDepth="2">
+          <IfFileName glob="*">
+            <IfLastModified age="7d">
+            </IfLastModified>
+          </IfFileName>
+        </Delete>
+      </DefaultRolloverStrategy>
+    </RollingFile>
+  </Appenders>
+  <Loggers>
+    <Logger name="org.apache.kafka" level="info" additivity="false">
+      <AppenderRef ref="KafkaDailyRollingFile"/>
+    </Logger>
+    <Logger name="org.apache.pulsar" level="info" additivity="false">
+      <AppenderRef ref="PulsarDailyRollingFile"/>
+    </Logger>
+    <Root level="info">
+      <AppenderRef ref="Console"/>
+    </Root>
+  </Loggers>
+</Configuration>

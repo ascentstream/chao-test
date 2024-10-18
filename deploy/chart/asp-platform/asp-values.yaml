@@ -1290,8 +1290,8 @@ broker:
     # 2. You can use a k8s secret to reference AWS credentials. See `offload.s3.secret`
     # AWS_ACCESS_KEY_ID: "[YOUR AWS ACCESS KEY ID]"
     # AWS_SECRET_ACCESS_KEY: "[YOUR SECRET]"
-    managedLedgerDefaultEnsembleSize: "3"
-    managedLedgerDefaultWriteQuorum: "3"
+    managedLedgerDefaultEnsembleSize: "2"
+    managedLedgerDefaultWriteQuorum: "2"
     managedLedgerDefaultAckQuorum: "2"
     PULSAR_PREFIX_systemTopicEnabled: "true"
     PULSAR_PREFIX_topicLevelPoliciesEnabled: "true"

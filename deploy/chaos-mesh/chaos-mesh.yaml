@@ -25,15 +25,17 @@ spec:
             - pulsar-cluster
           labelSelectors:
             cluster: pulsar-asp
+            component: broker
     - name: pod-failure
       deadline: 30s
       templateType: PodChaos
       podChaos:
         action: pod-failure
-        mode: fixed-percent
+        mode:  fixed-percent
         value: '30'
         selector:
           namespaces:
             - pulsar-cluster
           labelSelectors:
             cluster: pulsar-asp
+            component: broker
