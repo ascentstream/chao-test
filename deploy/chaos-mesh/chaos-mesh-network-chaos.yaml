@@ -27,3 +27,15 @@ spec:
             - pulsar-cluster
           labelSelectors:
             cluster: pulsar-asp
+    - name: network-partition
+      deadline: 30s
+      templateType: NetworkChaos
+      networkChaos:
+        action: partition
+        mode: fixed-percent
+        value: '50'
+        selector:
+          namespaces:
+            - pulsar-asp
+          labelSelectors:
+            cluster: pulsar-asp
