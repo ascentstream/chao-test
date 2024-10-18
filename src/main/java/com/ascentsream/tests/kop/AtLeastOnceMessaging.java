@@ -37,6 +37,7 @@ public class AtLeastOnceMessaging {
         String bootstrapServers = System.getProperty("kafka.bootstrap.servers", "127.0.0.1:9092");
         String topic = System.getProperty("topic", "at-least-once");
         String group = System.getProperty("kafka.group.id", "group-1");
+        long maxWaitingTime = Long.valueOf(System.getProperty("max.waiting.time", String.valueOf(4 * 60 * 1000)));
 
         BlockingQueue<String> receiveQueue = new LinkedBlockingQueue<>(msgCount * 2);
         BlockingQueue<String> sendQueue = new LinkedBlockingQueue<>(msgCount * 2);
@@ -70,10 +71,12 @@ public class AtLeastOnceMessaging {
                 log.info("get group[{}] status : {} ", group, lags.get(group).getKey());
                 AtomicLong lagCount = new AtomicLong();
                 KafkaClientUtils.printGroupLag(consumerGroupsCli, group, lagCount);
-                if (lagCount.get() <= 0L && consumedCount.get() >= producerMessages.size()) {
+                if (lagCount.get() <= 0L && consumedCount.get() >= producerMessages.size() && producerTask.isDone()) {
                     break;
                 }
-                if ((System.currentTimeMillis() - startTime) > 4 * 60 * 1000) {
+                long waitingTime = (System.currentTimeMillis() - startTime);
+                if (waitingTime > maxWaitingTime) {
+                    log.info("Waiting for {} exceed {} , will exit!", waitingTime, maxWaitingTime);
                     break;
                 }
             } catch (Exception e) {
@@ -82,6 +85,7 @@ public class AtLeastOnceMessaging {
             Thread.sleep(3000);
         }
         log.info("group[{}] received msg count {} ", group, consumedCount.get());
+
         DataUtil.writeQueueToFile(receiveQueue, consumerMsgFile);
         log.info("\n*************At least once test end *************\n");
         log.info("*************results analysis*************");

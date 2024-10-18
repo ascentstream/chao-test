@@ -11,6 +11,7 @@ spec:
       templateType: Serial
       children:
         - network-delay
+        - network-partition
     - name: network-delay
       deadline: 30s
       templateType: NetworkChaos

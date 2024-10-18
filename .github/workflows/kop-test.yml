@@ -116,4 +116,4 @@ jobs:
         if: failure()
         with:
           name: artifacts
-          path: artifacts-{{ matrix.test.name }}.zip
+          path: artifacts-${{ matrix.test.name }}.zip

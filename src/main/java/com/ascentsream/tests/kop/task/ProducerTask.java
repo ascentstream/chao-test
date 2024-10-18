@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.Data;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -13,6 +14,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Data
 public class ProducerTask {
     private static final Logger log = LoggerFactory.getLogger(ProducerTask.class);
     private KafkaProducer<String, Integer> producer;
@@ -21,6 +23,7 @@ public class ProducerTask {
     private final BlockingQueue<String> sendQueue;
     private final AtomicInteger sendCount;
     private final String producerOffsetFile;
+    private volatile boolean isDone = false;
 
     public ProducerTask(String bootstrapServers, String topic,
                         List<String> producerMessages,
@@ -82,6 +85,7 @@ public class ProducerTask {
                         throw new RuntimeException(e);
                     }
                 }
+                isDone = true;
                 log.info("sent msg : suc {}, failed {}, total {}.", sendCount.get(), sendFailedCount.get(),
                         producedMessage.size());
                 try {
