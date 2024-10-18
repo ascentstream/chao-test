@@ -31,6 +31,21 @@ jobs:
       REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
 
+    strategy:
+      # other jobs should run even if one test fails
+      fail-fast: false
+      matrix:
+        test: [
+          {
+            name: "alo-pod-chaos",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-pod-chaos.yaml"
+          },
+          {
+            name: "alo-network-chaos",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-chaos.yaml"
+          },
+        ]
+
     steps:
       - name: Checkout chao-test codebase
         uses: actions/checkout@v3
@@ -69,16 +84,36 @@ jobs:
       - name: deploy as-platform
         run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
 
-      - name: run at least once case
+      - name: ${{ matrix.test.name }}
         run: |
           kind load docker-image chao-test:latest
           kubectl -n pulsar-cluster run chao-test  --image=chao-test:latest --image-pull-policy=Never --restart=OnFailure --command -- bash -c "cd /app/chao-test-1.0-SNAPSHOT/bin && exec sh runserver.sh -Dkafka.bootstrap.servers=pulsar-asp-broker-headless:9092, -Dsend.msg.count=50000 -Dtopic=at-least-once com.ascentsream.tests.kop.AtLeastOnceMessaging"
           kubectl -n pulsar-cluster get pods
       - name: encode chaos-mesh config
-        run: echo "CFG_BASE64=$(base64 -w0 deploy/chaos-mesh/chaos-mesh.yaml)" >> $GITHUB_ENV
+        run: echo "CFG_BASE64=$(base64 -w0 ${{ matrix.test.name.chaos-mesh-config }}" >> $GITHUB_ENV
       - name: run chaos-mesh
         uses: chaos-mesh/chaos-mesh-action@master # v0.5 is broken
         env:
           CHAOS_MESH_VERSION: v2.7.0
       - name: Wait for workflow completion
         run:  ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
+
+      - name: package reports
+        if: failure()
+        run: |
+          rm -rf artifacts
+          mkdir artifacts
+          kubectl -n pulsar-cluster logs chao-test > ./artifacts/chao-test.log
+          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 > ./artifacts/pulsar-asp-broker-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 > ./artifacts/pulsar-asp-broker-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 > ./artifacts/pulsar-asp-bookie-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 > ./artifacts/pulsar-asp-bookie-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 > ./artifacts/pulsar-asp-bookie-2.log
+          zip -r artifacts.zip artifacts
+
+      - uses: actions/upload-artifact@master
+        name: upload reports
+        if: failure()
+        with:
+          name: artifacts
+          path: artifacts-{{ matrix.test.name }}.zip
