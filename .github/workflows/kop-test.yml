@@ -81,6 +81,4 @@ jobs:
         env:
           CHAOS_MESH_VERSION: v2.7.0
       - name: Wait for workflow completion
-        run: sleep 120
-      - name: Print pods
-        run: kubectl -n pulsar-cluster logs chao-test
+        run:  ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
