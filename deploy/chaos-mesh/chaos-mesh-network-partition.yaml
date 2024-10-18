@@ -12,7 +12,7 @@ spec:
       children:
         - network-partition
     - name: network-partition
-      deadline: 30s
+      deadline: 60s
       templateType: NetworkChaos
       networkChaos:
         action: partition
@@ -23,7 +23,7 @@ spec:
             namespaces:
               - pulsar-cluster
         mode: fixed-percent
-        value: '30'
+        value: '50'
         selector:
           namespaces:
             - pulsar-cluster

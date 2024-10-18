@@ -10,24 +10,22 @@ spec:
     - name: entry
       templateType: Serial
       children:
-        - network-delay
-    - name: network-delay
+        - network-corrupt
+    - name: network-corrupt
       deadline: 60s
       templateType: NetworkChaos
       networkChaos:
-        action: delay
-        direction: both
+        action: corrupt
+        direction: to
         target:
           mode: all
           selector:
             namespaces:
               - pulsar-cluster
-        delay:
-          latency: 500ms
-          correlation: '100'
-          jitter: 0ms
+          corrupt:
+            corrupt: '30'
+            correlation: '50'
         mode: fixed-percent
-        value: '50'
         selector:
           namespaces:
             - pulsar-cluster

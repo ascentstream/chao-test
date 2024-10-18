@@ -52,6 +52,10 @@ jobs:
             name: "alo-chaos-network-delay",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-delay.yaml"
           },
+          {
+            name: "alo-chaos-network-loss",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-loss.yaml"
+          },
         ]
 
     steps:

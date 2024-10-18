@@ -10,22 +10,16 @@ spec:
     - name: entry
       templateType: Serial
       children:
-        - network-delay
-    - name: network-delay
+        - network-loss
+    - name: network-loss
       deadline: 60s
       templateType: NetworkChaos
       networkChaos:
-        action: delay
+        action: loss
         direction: both
-        target:
-          mode: all
-          selector:
-            namespaces:
-              - pulsar-cluster
-        delay:
-          latency: 500ms
-          correlation: '100'
-          jitter: 0ms
+        loss:
+          loss: '30'
+          correlation: '50'
         mode: fixed-percent
         value: '50'
         selector:
