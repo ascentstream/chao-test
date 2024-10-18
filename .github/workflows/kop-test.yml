@@ -109,7 +109,7 @@ jobs:
           kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 > ./artifacts/pulsar-asp-bookie-0.log
           kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 > ./artifacts/pulsar-asp-bookie-1.log
           kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 > ./artifacts/pulsar-asp-bookie-2.log
-          zip -r artifacts.zip artifacts
+          zip -r artifacts-${{ matrix.test.name }}.zip artifacts
 
       - uses: actions/upload-artifact@master
         name: upload reports

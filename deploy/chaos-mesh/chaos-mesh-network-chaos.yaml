@@ -17,6 +17,12 @@ spec:
       templateType: NetworkChaos
       networkChaos:
         action: delay
+        direction: both
+        target:
+          mode: all
+          selector:
+            namespaces:
+              - pulsar-cluster
         delay:
           latency: 100ms
           correlation: '100'
@@ -33,10 +39,16 @@ spec:
       templateType: NetworkChaos
       networkChaos:
         action: partition
+        direction: both
+        target:
+          mode: all
+          selector:
+            namespaces:
+              - pulsar-cluster
         mode: fixed-percent
         value: '50'
         selector:
           namespaces:
-            - pulsar-asp
+            - pulsar-cluster
           labelSelectors:
             cluster: pulsar-asp
