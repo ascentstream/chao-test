@@ -72,7 +72,7 @@ public final class KafkaClientUtils {
         props.put(ProducerConfig.BATCH_SIZE_CONFIG, 0);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
         props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 1000);
-        props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 120000 * 10);
+        props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 1000 * 60 * 10);
         props.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
         return createKafkaProducerUntilSuc(props);
     }

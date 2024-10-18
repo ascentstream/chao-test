@@ -1,0 +1,12 @@
+# https://chaos-mesh.dev/reference/release-2.1/
+# https://chaos-mesh.org/docs/
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Workflow
+metadata:
+  name: asp-platform
+spec:
+  entry: entry
+  templates:
+    - name: entry
+      templateType: Serial
+      children:

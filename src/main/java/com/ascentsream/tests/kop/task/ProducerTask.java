@@ -76,7 +76,7 @@ public class ProducerTask {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while (sendCount.get() < producedMessage.size()) {
+                while ((sendCount.get() + sendFailedCount.get()) < producedMessage.size() || !isDone) {
                     try {
                         log.info("sending msg : suc {}, failed {}, total {}.",
                                 sendCount.get(), sendFailedCount.get(), producedMessage.size());

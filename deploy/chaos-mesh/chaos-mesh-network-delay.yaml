@@ -11,7 +11,6 @@ spec:
       templateType: Serial
       children:
         - network-delay
-        - network-partition
     - name: network-delay
       deadline: 30s
       templateType: NetworkChaos
@@ -24,27 +23,9 @@ spec:
             namespaces:
               - pulsar-cluster
         delay:
-          latency: 100ms
+          latency: 500ms
           correlation: '100'
           jitter: 0ms
-        mode: fixed-percent
-        value: '50'
-        selector:
-          namespaces:
-            - pulsar-cluster
-          labelSelectors:
-            cluster: pulsar-asp
-    - name: network-partition
-      deadline: 30s
-      templateType: NetworkChaos
-      networkChaos:
-        action: partition
-        direction: both
-        target:
-          mode: all
-          selector:
-            namespaces:
-              - pulsar-cluster
         mode: fixed-percent
         value: '50'
         selector:

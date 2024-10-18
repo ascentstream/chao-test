@@ -37,12 +37,20 @@ jobs:
       matrix:
         test: [
           {
-            name: "alo-pod-chaos",
+            name: "alo-normal",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-no-chaos.yaml"
+          },
+          {
+            name: "alo-chaos-pod",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-pod-chaos.yaml"
           },
           {
-            name: "alo-network-chaos",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-chaos.yaml"
+            name: "alo-chaos-network-partition",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-partition.yaml"
+          },
+          {
+            name: "alo-chaos-network-delay",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-delay.yaml"
           },
         ]
 
