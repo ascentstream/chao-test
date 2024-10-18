@@ -56,6 +56,10 @@ jobs:
             name: "alo-chaos-network-loss",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-loss.yaml"
           },
+          {
+            name: "alo-chaos-io-delay",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-io-delay.yaml"
+          },
         ]
 
     steps:
@@ -127,5 +131,5 @@ jobs:
         name: upload reports
         if: failure()
         with:
-          name: artifacts
+          name: artifacts-${{ matrix.test.name }}
           path: artifacts-${{ matrix.test.name }}.zip

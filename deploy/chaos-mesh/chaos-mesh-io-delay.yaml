@@ -10,16 +10,16 @@ spec:
     - name: entry
       templateType: Serial
       children:
-        - network-loss
-    - name: network-loss
+        - io-delay
+    - name: io-delay
       deadline: 60s
-      templateType: NetworkChaos
+      templateType: IOChaos
       networkChaos:
-        action: loss
-        direction: to
-        loss:
-          loss: '30'
-          correlation: '50'
+        action: latency
+        volumePath: /pulsar/data/bookkeeper/journal-0
+        path: '/pulsar/data/bookkeeper/journal-0/*'
+        delay: '300ms'
+        percent: 50
         mode: fixed-percent
         value: '50'
         selector:

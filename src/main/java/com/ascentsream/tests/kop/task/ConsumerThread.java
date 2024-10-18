@@ -56,6 +56,7 @@ public class ConsumerThread extends Thread {
                     if (checkPartitionLag(partitionLag)) {
                         running = false;
                     }
+                    Thread.sleep(3000);
                 }
             } catch (Exception e) {
                 log.error("consumer poll error,", e);
