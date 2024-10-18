@@ -68,7 +68,6 @@ public class AtLeastOnceMessaging {
             try {
                 TreeMap<String, Pair<String, List<ConsumerGroupsCli.PartitionAssignmentState>>> lags =
                         consumerGroupsCli.collectGroupOffsets(Arrays.asList(group));
-                log.info("get group[{}] status : {} ", group, lags.get(group).getKey());
                 AtomicLong lagCount = new AtomicLong();
                 KafkaClientUtils.printGroupLag(consumerGroupsCli, group, lagCount);
                 if (lagCount.get() <= 0L && consumedCount.get() >= producerMessages.size() && producerTask.isDone()) {
@@ -78,6 +77,7 @@ public class AtLeastOnceMessaging {
                 if (waitingTime > maxWaitingTime) {
                     log.info("Waiting for {} exceed {} , will exit!", waitingTime, maxWaitingTime);
                     producerTask.setDone(true);
+                    Thread.sleep(3000);
                     break;
                 }
             } catch (Exception e) {

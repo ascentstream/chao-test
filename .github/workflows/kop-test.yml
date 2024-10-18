@@ -118,11 +118,15 @@ jobs:
           rm -rf artifacts
           mkdir artifacts
           kubectl -n pulsar-cluster logs chao-test > ./artifacts/chao-test.log
+          kubectl cp pulsar-cluster/chao-test:/app/chao-test-1.0-SNAPSHOT/logs/kafka_client.log ./artifacts/kafka_client.log
           kubectl -n pulsar-cluster logs pulsar-asp-broker-0 > ./artifacts/pulsar-asp-broker-0.log
           kubectl -n pulsar-cluster logs pulsar-asp-broker-1 > ./artifacts/pulsar-asp-broker-1.log
           kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 > ./artifacts/pulsar-asp-bookie-0.log
           kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 > ./artifacts/pulsar-asp-bookie-1.log
           kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 > ./artifacts/pulsar-asp-bookie-2.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 > ./artifacts/pulsar-asp-zookeeper-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 > ./artifacts/pulsar-asp-zookeeper-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 > ./artifacts/pulsar-asp-zookeeper-2.log
           zip -r artifacts-${{ matrix.test.name }}.zip artifacts
 
       - uses: actions/upload-artifact@master

@@ -8,10 +8,11 @@ spec:
   entry: entry
   templates:
     - name: entry
-      templateType: Serial
+      templateType: Parallel
       children:
-        - io-delay
-    - name: io-delay
+        - journal-io-delay
+        - ledgers-io-delay
+    - name: journal-io-delay
       deadline: 60s
       templateType: IOChaos
       ioChaos:
@@ -27,3 +28,21 @@ spec:
             - pulsar-cluster
           labelSelectors:
             cluster: pulsar-asp
+            component: bookie
+    - name: ledgers-io-delay
+      deadline: 60s
+      templateType: IOChaos
+      ioChaos:
+        action: latency
+        volumePath: '/pulsar/data/bookkeeper/ledgers-0'
+        path: '/pulsar/data/bookkeeper/ledgers-0/*'
+        delay: '500ms'
+        percent: 50
+        mode: fixed-percent
+        value: '50'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+            component: bookie
