@@ -103,7 +103,5 @@ public class AtLeastOnceMessaging {
         consumerTask.close();
         kafkaAdmin.deleteTopics(Collections.singleton(topic)).all().get();
         kafkaAdmin.close();
-
-        Thread.sleep(10 * 60 * 1000);
     }
 }

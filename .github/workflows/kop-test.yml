@@ -73,7 +73,7 @@ jobs:
         run: |
           kind load docker-image chao-test:latest
           kubectl -n pulsar-cluster run chao-test  --image=chao-test:latest --image-pull-policy=Never --restart=OnFailure --command -- bash -c "cd /app/chao-test-1.0-SNAPSHOT/bin && exec sh runserver.sh -Dkafka.bootstrap.servers=pulsar-asp-broker-headless:9092, -Dsend.msg.count=50000 -Dtopic=at-least-once com.ascentsream.tests.kop.AtLeastOnceMessaging"
-          kubectl -n pulsar-cluster logs chao-test
+          kubectl -n pulsar-cluster get pods
       - name: encode chaos-mesh config
         run: echo "CFG_BASE64=$(base64 -w0 deploy/chaos-mesh/chaos-mesh.yaml)" >> $GITHUB_ENV
       - name: run chaos-mesh
