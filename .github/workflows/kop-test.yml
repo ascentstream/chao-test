@@ -22,7 +22,22 @@ env:
   GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
 
 jobs:
-  asp-prducts-release:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: mvn clean package
+      - name: Build docker
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: false
+          tags: chao-test:latest
+          cache-from: type=registry,ref=chao-test:latest
+          cache-to: type=inline
+  chaos-mesh:
     runs-on: ubuntu-latest
     env:
       REPO_PATH: ${{ github.workspace }}
@@ -60,16 +75,16 @@ jobs:
       - name: deploy as-platform
         run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
 
-      - name: encode chaos-mesh config
-        run: echo "CFG_BASE64=$(base64 -w0 deploy/chaos-mesh/chaos-mesh.yaml)" >> $GITHUB_ENV
-
+      - name: run at least once case
+        run: kubectl -n pulsar-cluster run chao-test  --image=chao-test:latest --image-pull-policy=Never --restart=OnFailure --command -- bash -c "cd /app/chao-test-1.0-SNAPSHOT/bin && exec sh runserver.sh -Dkafka.bootstrap.servers=pulsar-asp-broker-headless:9092, -Dsend.msg.count=50000 -Dtopic=at-least-once com.ascentsream.tests.kop.AtLeastOnceMessaging"
+#      - name: encode chaos-mesh config
+#        run: echo "CFG_BASE64=$(base64 -w0 deploy/chaos-mesh/chaos-mesh.yaml)" >> $GITHUB_ENV
       - name: run chaos-mesh
         uses: chaos-mesh/chaos-mesh-action@master # v0.5 is broken
         env:
             CHAOS_MESH_VERSION: v2.7.0
-
+            CFG_BASE64: $(base64 -w0 deploy/chaos-mesh/chaos-mesh.yaml)
       - name: Wait for workflow completion
         run: sleep 120
-
       - name: Print pods
-        run: kubectl -n pulsar-cluster get pods
+        run: kubectl -n pulsar-cluster logs chao-test
