@@ -14,9 +14,9 @@ spec:
     - name: io-delay
       deadline: 60s
       templateType: IOChaos
-      networkChaos:
+      ioChaos:
         action: latency
-        volumePath: /pulsar/data/bookkeeper/journal-0
+        volumePath: '/pulsar/data/bookkeeper/journal-0'
         path: '/pulsar/data/bookkeeper/journal-0/*'
         delay: '300ms'
         percent: 50

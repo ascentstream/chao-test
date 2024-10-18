@@ -63,7 +63,7 @@ public class AtLeastOnceMessaging {
         Thread.sleep(3000);
 
         ConsumerGroupsCli consumerGroupsCli = new ConsumerGroupsCli(kafkaAdmin);
-        while (consumedCount.get() < producerMessages.size()) {
+        while (true) {
             log.info("group[{}] received msg count {} ", group, consumedCount.get());
             try {
                 TreeMap<String, Pair<String, List<ConsumerGroupsCli.PartitionAssignmentState>>> lags =

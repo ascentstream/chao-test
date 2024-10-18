@@ -82,7 +82,7 @@ public class ProducerTask {
                                 sendCount.get(), sendFailedCount.get(), producedMessage.size());
                         Thread.sleep(3000);
                     } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        log.error("InterruptedException ", e);
                     }
                 }
                 isDone = true;
