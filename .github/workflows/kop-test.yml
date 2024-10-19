@@ -30,6 +30,9 @@ jobs:
       AS_PLATFORM_IMAGE_TAG: ${{ github.event.inputs.as-platform-image-tag }}
       REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
+      kafka.bootstrap.servers: pulsar-asp-broker-headless:9092
+      send.msg.count: 50000
+      max.waiting.time: 600
 
     strategy:
       # other jobs should run even if one test fails
@@ -38,33 +41,27 @@ jobs:
         test: [
           {
             name: "alo-normal",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-no-chaos.yaml",
-            max-waiting-time: "300"
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-no-chaos.yaml"
           },
           {
             name: "alo-chaos-pod",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-pod-chaos.yaml",
-            max-waiting-time: "480"
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-pod-chaos.yaml"
           },
           {
             name: "alo-chaos-network-partition",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-partition.yaml",
-            max-waiting-time: "480"
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-partition.yaml"
           },
           {
             name: "alo-chaos-network-delay",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-delay.yaml",
-            max-waiting-time: "480"
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-delay.yaml"
           },
           {
             name: "alo-chaos-network-loss",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-loss.yaml",
-            max-waiting-time: "480"
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-loss.yaml"
           },
           {
             name: "alo-chaos-io-delay",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-io-delay.yaml",
-            max-waiting-time: "300"
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-io-delay.yaml"
           },
         ]
 
@@ -105,10 +102,6 @@ jobs:
         run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
 
       - name: ${{ matrix.test.name }}
-        evn:
-          kafka.bootstrap.servers: pulsar-asp-broker-headless:9092
-          send.msg.count: 50000
-          max.waiting.time: ${{ matrix.test.max-waiting-time }}
         run: |
           kind load docker-image chao-test:latest
           ${{ env.REPO_PATH }}/scripts/run-chao-test.sh
