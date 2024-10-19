@@ -101,7 +101,7 @@ jobs:
       - name: ${{ matrix.test.name }}
         run: |
           kind load docker-image chao-test:latest
-          kubectl -n pulsar-cluster run chao-test  --image=chao-test:latest --image-pull-policy=Never --restart=OnFailure --command -- bash -c "cd /app/chao-test-1.0-SNAPSHOT/bin && exec sh runserver.sh -Dkafka.bootstrap.servers=pulsar-asp-broker-headless:9092, -Dsend.msg.count=50000 -Dtopic=at-least-once com.ascentsream.tests.kop.AtLeastOnceMessaging"
+          ${{ env.REPO_PATH }}/scripts/run-chao-test.sh
           kubectl -n pulsar-cluster get pods
       - name: encode chaos-mesh config
         run: echo "CFG_BASE64=$(base64 -w0 ${{ matrix.test.chaos-mesh-config }})" >> $GITHUB_ENV
@@ -117,16 +117,19 @@ jobs:
         run: |
           rm -rf artifacts
           mkdir artifacts
-          kubectl -n pulsar-cluster logs chao-test > ./artifacts/chao-test.log
-          kubectl cp pulsar-cluster/chao-test:/app/chao-test-1.0-SNAPSHOT/logs/kafka_client.log ./artifacts/kafka_client.log
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 > ./artifacts/pulsar-asp-broker-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 > ./artifacts/pulsar-asp-broker-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 > ./artifacts/pulsar-asp-bookie-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 > ./artifacts/pulsar-asp-bookie-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 > ./artifacts/pulsar-asp-bookie-2.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 > ./artifacts/pulsar-asp-zookeeper-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 > ./artifacts/pulsar-asp-zookeeper-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 > ./artifacts/pulsar-asp-zookeeper-2.log
+          mkdir artifacts/chao-test
+          mkdir artifacts/pulsar
+          current_dir=$PWD
+          kubectl -n pulsar-cluster logs chao-test > ${current_dir}/artifacts/chao-test/chao-test.log
+          ${{ env.REPO_PATH }}/scripts/ cp-logs-from-kind.sh  ${current_dir}/artifacts/chao-test
+          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-2.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
           zip -r artifacts-${{ matrix.test.name }}.zip artifacts
 
       - uses: actions/upload-artifact@master
