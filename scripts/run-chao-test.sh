@@ -14,7 +14,7 @@ kubectl -n ${ASP_NAMESPACE} run chao-test --image=chao-test:latest --restart=Nev
         "command": ["/bin/sh", "-c", "cd /app/chao-test-1.0-SNAPSHOT/bin && exec sh runserver.sh -Dkafka.bootstrap.servers=pulsar-asp-broker-headless:9092 -Dsend.msg.count=50000 -Dtopic=at-least-once -Dkafka.group.id=group1 com.ascentsream.tests.kop.AtLeastOnceMessaging"],
        "volumeMounts": [
           {
-            "name": "host-log-path",
+            "name": "host-path",
             "mountPath": "/data"
           }
           ]
