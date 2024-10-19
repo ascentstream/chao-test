@@ -15,4 +15,4 @@ else
     echo "container $node_name id is $container_id"
 fi
 
-docker cp $container_id:/kind/chao-test/logs/  $1
+docker cp $container_id:/kind/chao-test/data/  $1

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="info">
   <Properties>
-    <Property name="log_path">../logs/</Property>
+    <Property name="log_path">/data/logs/</Property>
   </Properties>
 
   <Appenders>

@@ -14,5 +14,5 @@
 package com.ascentsream.tests.kop.common;
 
 public class Constants {
-    public static final String DATA_ROOT_PATH = "/tmp";
+    public static final String DATA_ROOT_PATH = "/data";
 }

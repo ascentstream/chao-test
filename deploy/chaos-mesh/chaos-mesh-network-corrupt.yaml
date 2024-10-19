@@ -22,9 +22,9 @@ spec:
           selector:
             namespaces:
               - pulsar-cluster
-          corrupt:
-            corrupt: '50'
-            correlation: '50'
+        corrupt:
+          corrupt: '50'
+          correlation: '50'
         mode: fixed-percent
         selector:
           namespaces:
