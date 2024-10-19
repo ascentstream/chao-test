@@ -4,7 +4,7 @@ echo $BASE_DIR
 export ASP_NAMESPACE=pulsar-cluster
 
 
-kubectl -n ${ASP_NAMESPACE} run chao-test --image=chao-test:latest --restart=Never --overrides='
+kubectl -n ${ASP_NAMESPACE} run chao-test --image=chao-test:latest --restart=Never --overrides= '
 {
   "spec": {
     "containers": [
@@ -12,7 +12,7 @@ kubectl -n ${ASP_NAMESPACE} run chao-test --image=chao-test:latest --restart=Nev
         "name": "chao-test",
         "image": "chao-test:latest",
         "imagePullPolicy": "Never",
-        "command": ["/bin/sh", "-c", "cd /app/chao-test-1.0-SNAPSHOT/bin && exec sh runserver.sh com.ascentsream.tests.kop.AtLeastOnceMessaging"],
+        "command": ["/bin/sh", "-c", "cd /app/chao-test-1.0-SNAPSHOT/bin && exec sh runserver.sh -Dkafka.bootstrap.servers=pulsar-asp-broker-headless:9092 -Dsend.msg.count=50000 com.ascentsream.tests.kop.AtLeastOnceMessaging"],
         "volumeMounts": [
           {
             "name": "host-log-path",

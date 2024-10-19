@@ -30,9 +30,6 @@ jobs:
       AS_PLATFORM_IMAGE_TAG: ${{ github.event.inputs.as-platform-image-tag }}
       REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
-      kafka.bootstrap.servers: pulsar-asp-broker-headless:9092
-      send.msg.count: 50000
-      max.waiting.time: 600
 
     strategy:
       # other jobs should run even if one test fails

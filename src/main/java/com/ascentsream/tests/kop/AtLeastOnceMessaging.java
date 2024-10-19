@@ -31,12 +31,12 @@ public class AtLeastOnceMessaging {
         String originMsgFile = DATA_ROOT_PATH + "/chao_test/origin/" + "messaging-key.txt";
         String consumerMsgFile = DATA_ROOT_PATH+ "/chao_test/at-least-once/consumer/" + "messaging-key.txt";
         String producerOffsetFile = DATA_ROOT_PATH + "/chao_test/at-least-once/producer/" + "offset.txt";
-        int msgCount = Integer.parseInt(System.getenv().getOrDefault("send.msg.count", "1000"));
-        int partitionNum = Integer.parseInt(System.getenv().getOrDefault("topic.partition", "10"));
-        String bootstrapServers = System.getenv().getOrDefault("kafka.bootstrap.servers", "127.0.0.1:9092");
-        String topic =System.getenv().getOrDefault("topic", "at-least-once");
-        String group = System.getenv().getOrDefault("kafka.group.id", "group-1");
-        long maxWaitingTime = Long.parseLong(System.getenv().getOrDefault("max.waiting.time", String.valueOf(5 * 60 )));
+        int msgCount = Integer.parseInt(System.getProperty("send.msg.count", "1000"));
+        int partitionNum = Integer.parseInt(System.getProperty("topic.partition", "10"));
+        String bootstrapServers = System.getProperty("kafka.bootstrap.servers", "127.0.0.1:9092");
+        String topic = System.getProperty("topic", "at-least-once");
+        String group = System.getProperty("kafka.group.id", "group-1");
+        long maxWaitingTime = Long.parseLong(System.getProperty("max.waiting.time", String.valueOf(5 * 60 )));
 
         BlockingQueue<String> receiveQueue = new LinkedBlockingQueue<>(msgCount * 2);
         BlockingQueue<String> sendQueue = new LinkedBlockingQueue<>(msgCount * 2);
