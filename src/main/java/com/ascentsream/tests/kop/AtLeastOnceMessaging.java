@@ -28,16 +28,15 @@ public class AtLeastOnceMessaging {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         long startTime = System.currentTimeMillis();
-        String originMsgFile = DATA_ROOT_PATH + "/chao_test/origin/" + "messaging-50-key.txt";
-        String consumerMsgFile = DATA_ROOT_PATH+ "/chao_test/at-least-once/consumer/" + "messaging-50-key.txt";
+        String originMsgFile = DATA_ROOT_PATH + "/chao_test/origin/" + "messaging-key.txt";
+        String consumerMsgFile = DATA_ROOT_PATH+ "/chao_test/at-least-once/consumer/" + "messaging-key.txt";
         String producerOffsetFile = DATA_ROOT_PATH + "/chao_test/at-least-once/producer/" + "offset.txt";
-
-        int msgCount = Integer.parseInt(System.getProperty("send.msg.count", "1000"));
-        int partitionNum = Integer.parseInt(System.getProperty("topic.partition", "10"));
-        String bootstrapServers = System.getProperty("kafka.bootstrap.servers", "127.0.0.1:9092");
-        String topic = System.getProperty("topic", "at-least-once");
-        String group = System.getProperty("kafka.group.id", "group-1");
-        long maxWaitingTime = Long.valueOf(System.getProperty("max.waiting.time", String.valueOf(5 * 60 * 1000)));
+        int msgCount = Integer.parseInt(System.getenv().getOrDefault("send.msg.count", "1000"));
+        int partitionNum = Integer.parseInt(System.getenv().getOrDefault("topic.partition", "10"));
+        String bootstrapServers = System.getenv().getOrDefault("kafka.bootstrap.servers", "127.0.0.1:9092");
+        String topic =System.getenv().getOrDefault("topic", "at-least-once");
+        String group = System.getenv().getOrDefault("kafka.group.id", "group-1");
+        long maxWaitingTime = Long.parseLong(System.getenv().getOrDefault("max.waiting.time", String.valueOf(5 * 60 )));
 
         BlockingQueue<String> receiveQueue = new LinkedBlockingQueue<>(msgCount * 2);
         BlockingQueue<String> sendQueue = new LinkedBlockingQueue<>(msgCount * 2);
@@ -74,14 +73,14 @@ public class AtLeastOnceMessaging {
                     break;
                 }
                 long waitingTime = (System.currentTimeMillis() - startTime);
-                if (waitingTime > maxWaitingTime) {
-                    log.info("Waiting for {} exceed {} , will exit!", waitingTime, maxWaitingTime);
+                if (waitingTime > maxWaitingTime * 1000) {
+                    log.info("Waiting for {} exceed {} s, will exit!", waitingTime, maxWaitingTime);
                     producerTask.setDone(true);
                     Thread.sleep(3000);
                     break;
                 }
             } catch (Exception e) {
-                log.error( " printGroupLag error, ", e);
+                log.error( "printGroupLag error, ", e);
             }
             Thread.sleep(3000);
         }
