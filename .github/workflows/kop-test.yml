@@ -103,7 +103,7 @@ jobs:
 
       - name: ${{ matrix.test.name }}
         env:
-          KAFKA_BOOTSTRAP_SERVERS: pulsar-asp-broker-headless:9092
+          kafka.bootstrap.servers: pulsar-asp-broker-headless:9092
           SEND_MSG_COUNT: 50000
           MAX_WAITING_TIME: 600
         run: |
