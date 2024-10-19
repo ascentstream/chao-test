@@ -7,7 +7,7 @@
   <Appenders>
 
     <Console name="Console" target="SYSTEM_OUT">
-      <PatternLayout pattern="%d - %m%n"/>
+      <PatternLayout pattern="[%d][%t][%p][%c:%L]- %m%n"/>
     </Console>
 
     <RollingFile name="KafkaDailyRollingFile" fileName="${log_path}/kafka_client.log"

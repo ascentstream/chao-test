@@ -66,11 +66,9 @@ public class AtLeastOnceMessaging {
         while (true) {
             log.info("group[{}] received msg count {} ", group, consumedCount.get());
             try {
-                TreeMap<String, Pair<String, List<ConsumerGroupsCli.PartitionAssignmentState>>> lags =
-                        consumerGroupsCli.collectGroupOffsets(Arrays.asList(group));
                 AtomicLong lagCount = new AtomicLong();
                 KafkaClientUtils.printGroupLag(consumerGroupsCli, group, lagCount);
-                if (lagCount.get() <= 0L && consumedCount.get() >= producerMessages.size() && producerTask.isDone()) {
+                if (lagCount.get() == 0L && consumedCount.get() >= producerMessages.size() && producerTask.isDone()) {
                     Thread.sleep(10000);
                     break;
                 }

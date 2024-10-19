@@ -174,6 +174,8 @@ public final class KafkaClientUtils {
                         partitionAssignmentState.group(), partitionAssignmentState.topic(), partition, logEndOffset,
                         offset, lag);
             });
+        } else {
+            throw new RuntimeException( "can not get Lag, " + lags.get(group).getKey());
         }
     }
 
