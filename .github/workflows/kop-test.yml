@@ -99,10 +99,6 @@ jobs:
         run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
 
       - name: ${{ matrix.test.name }}
-        env:
-          kafka.bootstrap.servers: pulsar-asp-broker-headless:9092
-          send.msg.count: 50000
-          max.waiting.time: 600
         run: |
           kind load docker-image chao-test:latest
           ${{ env.REPO_PATH }}/scripts/run-chao-test.sh

@@ -36,7 +36,7 @@ public class AtLeastOnceMessaging {
         String bootstrapServers = System.getProperty("kafka.bootstrap.servers", "127.0.0.1:9092");
         String topic = System.getProperty("topic", "at-least-once");
         String group = System.getProperty("kafka.group.id", "group-1");
-        long maxWaitingTime = Long.parseLong(System.getProperty("max.waiting.time", String.valueOf(5 * 60 )));
+        long maxWaitingTime = Long.parseLong(System.getProperty("max.waiting.time", String.valueOf(10 * 60 )));
 
         BlockingQueue<String> receiveQueue = new LinkedBlockingQueue<>(msgCount * 2);
         BlockingQueue<String> sendQueue = new LinkedBlockingQueue<>(msgCount * 2);

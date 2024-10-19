@@ -16,5 +16,3 @@ else
 fi
 
 docker cp $container_id:/kind/chao-test/logs/  $1
-
-docker cp $container_id:/kind/chao-test/data/  $1/data
