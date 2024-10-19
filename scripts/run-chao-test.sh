@@ -2,12 +2,12 @@
 BASE_DIR=$(cd $(dirname $0); pwd)
 echo  $BASE_DIR
 export ASP_NAMESPACE=pulsar-cluster
-app_root_path="/app/chao-test-1.0-SNAPSHOT"
-kafka_bootstrap_servers="pulsar-asp-broker-headless:9092"
-send_msg_count="1000"
-max_waiting_time="300"
-topic_partition="10"
-main_class="com.ascentsream.tests.kop.AtLeastOnceMessaging"
+app_root_path=${APP_ROOT_PATH:-"/app/chao-test-1.0-SNAPSHOT"}
+kafka_bootstrap_servers=${KAFKA_BOOTSTRAP_SERVERS:-"pulsar-asp-broker-headless:9092"}
+send_msg_count=${SEND_MSG_COUNT:-"50000"}
+max_waiting_time=${MAX_WAITING_TIME:-"300"}
+topic_partition=${TOPIC_PARTITION:-"10"}
+main_class=${MAIN_CLASS:-"com.ascentsream.tests.kop.AtLeastOnceMessaging"}
 spec='
 {
   "spec": {

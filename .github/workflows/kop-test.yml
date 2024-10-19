@@ -30,6 +30,9 @@ jobs:
       AS_PLATFORM_IMAGE_TAG: ${{ github.event.inputs.as-platform-image-tag }}
       REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
+      KAFKA_BOOTSTRAP_SERVERS: pulsar-asp-broker-headless:9092
+      SEND_MSG_COUNT: 50000
+      TOPIC_PARTITION: 10
 
     strategy:
       # other jobs should run even if one test fails
