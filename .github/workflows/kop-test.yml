@@ -121,7 +121,7 @@ jobs:
           mkdir artifacts/pulsar
           current_dir=$PWD
           kubectl -n pulsar-cluster logs chao-test > ${current_dir}/artifacts/chao-test/chao-test.log
-          ${{ env.REPO_PATH }}/scripts/ cp-logs-from-kind.sh  ${current_dir}/artifacts/chao-test
+          ${{ env.REPO_PATH }}/scripts/cp-logs-from-kind.sh  ${current_dir}/artifacts/chao-test
           kubectl -n pulsar-cluster logs pulsar-asp-broker-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-0.log
           kubectl -n pulsar-cluster logs pulsar-asp-broker-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-1.log
           kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-0.log
