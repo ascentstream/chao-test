@@ -122,6 +122,8 @@ jobs:
         run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
 
       - name: ${{ matrix.test.name }}
+        env:
+          MAX_WAITING_TIME: 400
         run: |
           kind load docker-image chao-test:latest
           ${{ env.REPO_PATH }}/scripts/run-chao-test.sh
