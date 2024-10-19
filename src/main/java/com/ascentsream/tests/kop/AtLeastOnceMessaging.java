@@ -57,9 +57,10 @@ public class AtLeastOnceMessaging {
                 producerMessages.size(), consumedCount, receiveQueue);
         ProducerTask producerTask = new ProducerTask(bootstrapServers, topic, producerMessages, producerOffsetFile,
                 sendCount, sendQueue);
+        Thread.sleep(5000);
         producerTask.start();
         consumerTask.start();
-        Thread.sleep(3000);
+        Thread.sleep(5000);
 
         ConsumerGroupsCli consumerGroupsCli = new ConsumerGroupsCli(kafkaAdmin);
         while (true) {

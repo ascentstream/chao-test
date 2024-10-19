@@ -33,6 +33,7 @@ jobs:
       KAFKA_BOOTSTRAP_SERVERS: pulsar-asp-broker-headless:9092
       SEND_MSG_COUNT: 50000
       TOPIC_PARTITION: 10
+      MAX_WAITING_TIME: 600
 
     strategy:
       # other jobs should run even if one test fails
@@ -122,8 +123,6 @@ jobs:
         run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
 
       - name: ${{ matrix.test.name }}
-        env:
-          MAX_WAITING_TIME: 400
         run: |
           kind load docker-image chao-test:latest
           ${{ env.REPO_PATH }}/scripts/run-chao-test.sh

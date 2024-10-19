@@ -17,13 +17,12 @@ spec:
       stressChaos:
         stressors:
           memory:
-            workers: 1
+            workers: 2
             size: 90%
         mode: fixed-percent
-        value: '30'
+        value: '50'
         selector:
           namespaces:
             - pulsar-cluster
           labelSelectors:
             cluster: pulsar-asp
-            component: bookie

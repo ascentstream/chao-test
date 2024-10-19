@@ -12,7 +12,7 @@ spec:
       children:
         - network-delay
     - name: network-delay
-      deadline: 60s
+      deadline: 120s
       templateType: NetworkChaos
       networkChaos:
         action: delay
@@ -23,11 +23,11 @@ spec:
             namespaces:
               - pulsar-cluster
         delay:
-          latency: 500ms
+          latency: 1000ms
           correlation: '100'
           jitter: 0ms
         mode: fixed-percent
-        value: '90'
+        value: '100'
         selector:
           namespaces:
             - pulsar-cluster

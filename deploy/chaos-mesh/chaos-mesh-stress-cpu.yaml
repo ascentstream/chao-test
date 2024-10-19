@@ -26,4 +26,3 @@ spec:
             - pulsar-cluster
           labelSelectors:
             cluster: pulsar-asp
-            component: bookie

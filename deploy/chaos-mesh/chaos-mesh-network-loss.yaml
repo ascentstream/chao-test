@@ -12,7 +12,7 @@ spec:
       children:
         - network-loss
     - name: network-loss
-      deadline: 60s
+      deadline: 120s
       templateType: NetworkChaos
       networkChaos:
         action: loss
@@ -26,7 +26,7 @@ spec:
           loss: '50'
           correlation: '50'
         mode: fixed-percent
-        value: '80'
+        value: '100'
         selector:
           namespaces:
             - pulsar-cluster

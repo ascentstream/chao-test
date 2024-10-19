@@ -13,16 +13,16 @@ spec:
         - journal-io-fault
         - ledgers-io-fault
     - name: journal-io-fault
-      deadline: 60s
+      deadline: 120s
       templateType: IOChaos
       ioChaos:
         action: fault
         volumePath: '/pulsar/data/bookkeeper/journal-0'
         path: '/pulsar/data/bookkeeper/journal-0/*'
         errno: 5
-        percent: 50
+        percent: 70
         mode: fixed-percent
-        value: '50'
+        value: '70'
         selector:
           namespaces:
             - pulsar-cluster
@@ -30,16 +30,16 @@ spec:
             cluster: pulsar-asp
             component: bookie
     - name: ledgers-io-fault
-      deadline: 60s
+      deadline: 120s
       templateType: IOChaos
       ioChaos:
         action: fault
         volumePath: '/pulsar/data/bookkeeper/ledgers-0'
         path: '/pulsar/data/bookkeeper/ledgers-0/*'
         errno: 5
-        percent: 50
+        percent: 70
         mode: fixed-percent
-        value: '50'
+        value: '70'
         selector:
           namespaces:
             - pulsar-cluster
