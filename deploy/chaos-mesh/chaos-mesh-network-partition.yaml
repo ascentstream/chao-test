@@ -23,7 +23,7 @@ spec:
             namespaces:
               - pulsar-cluster
         mode: fixed-percent
-        value: '50'
+        value: '70'
         selector:
           namespaces:
             - pulsar-cluster

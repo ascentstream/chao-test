@@ -1,0 +1,48 @@
+# https://chaos-mesh.dev/reference/release-2.1/
+# https://chaos-mesh.org/docs/
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Workflow
+metadata:
+  name: asp-platform
+spec:
+  entry: entry
+  templates:
+    - name: entry
+      templateType: Parallel
+      children:
+        - journal-io-fault
+        - ledgers-io-fault
+    - name: journal-io-fault
+      deadline: 60s
+      templateType: IOChaos
+      ioChaos:
+        action: fault
+        volumePath: '/pulsar/data/bookkeeper/journal-0'
+        path: '/pulsar/data/bookkeeper/journal-0/*'
+        errno: 5
+        percent: 50
+        mode: fixed-percent
+        value: '50'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+            component: bookie
+    - name: ledgers-io-fault
+      deadline: 60s
+      templateType: IOChaos
+      ioChaos:
+        action: fault
+        volumePath: '/pulsar/data/bookkeeper/ledgers-0'
+        path: '/pulsar/data/bookkeeper/ledgers-0/*'
+        errno: 5
+        percent: 50
+        mode: fixed-percent
+        value: '50'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+            component: bookie

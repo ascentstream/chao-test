@@ -18,10 +18,10 @@ spec:
         action: loss
         direction: to
         loss:
-          loss: '30'
+          loss: '50'
           correlation: '50'
         mode: fixed-percent
-        value: '50'
+        value: '80'
         selector:
           namespaces:
             - pulsar-cluster

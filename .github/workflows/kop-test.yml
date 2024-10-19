@@ -57,8 +57,16 @@ jobs:
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-loss.yaml"
           },
           {
+            name: "alo-chaos-network-corrupt",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-corrupt.yaml"
+          },
+          {
             name: "alo-chaos-io-delay",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-io-delay.yaml"
+          },
+          {
+            name: "alo-chaos-io-fault",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-io-fault.yaml"
           },
         ]
 
