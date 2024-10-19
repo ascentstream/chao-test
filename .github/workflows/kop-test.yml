@@ -7,7 +7,16 @@ on:
         required: true
         default: '2.10.7.4'
         type: string
-
+      send-msg-count:
+        description: 'Please enter the number of messages to send'
+        required: true
+        default: '50000'
+        type: number
+      max-waiting-time:
+        description: 'Please enter the maximum waiting time，s'
+        required: true
+        default: '600'
+        type: number
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -31,9 +40,9 @@ jobs:
       REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
       KAFKA_BOOTSTRAP_SERVERS: pulsar-asp-broker-headless:9092
-      SEND_MSG_COUNT: 50000
+      SEND_MSG_COUNT: ${{ github.event.inputs.send-msg-count }}
       TOPIC_PARTITION: 10
-      MAX_WAITING_TIME: 600
+      MAX_WAITING_TIME: ${{ github.event.inputs.max-waiting-time }}
 
     strategy:
       # other jobs should run even if one test fails

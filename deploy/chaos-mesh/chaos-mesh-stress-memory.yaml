@@ -18,7 +18,7 @@ spec:
         stressors:
           memory:
             workers: 2
-            size: 90%
+            size: 80%
         mode: fixed-percent
         value: '50'
         selector:

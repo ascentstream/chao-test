@@ -18,7 +18,7 @@ spec:
         stressors:
           cpu:
             workers: 2
-            load: 100
+            load: 80
         mode: fixed-percent
         value: '60'
         selector:
