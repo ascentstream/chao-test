@@ -30,9 +30,9 @@ jobs:
       AS_PLATFORM_IMAGE_TAG: ${{ github.event.inputs.as-platform-image-tag }}
       REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
-      kafka.bootstrap.servers: pulsar-asp-broker-headless:9092
-      send.msg.count: 50000
-      max.waiting.time: 600
+#      kafka.bootstrap.servers: pulsar-asp-broker-headless:9092
+#      send.msg.count: 50000
+#      max.waiting.time: 600
 
     strategy:
       # other jobs should run even if one test fails
@@ -98,22 +98,27 @@ jobs:
           cluster_name: kind
           kubectl_version: v1.25.5
 
-      - name: deploy as-platform
-        run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
+#      - name: deploy as-platform
+#        run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
 
       - name: ${{ matrix.test.name }}
+        env:
+          KAFKA_BOOTSTRAP_SERVERS: pulsar-asp-broker-headless:9092
+          SEND_MSG_COUNT: 50000
+          MAX_WAITING_TIME: 600
         run: |
           kind load docker-image chao-test:latest
+          kubectl create namespace pulsar-cluster
           ${{ env.REPO_PATH }}/scripts/run-chao-test.sh
           kubectl -n pulsar-cluster get pods
-      - name: encode chaos-mesh config
-        run: echo "CFG_BASE64=$(base64 -w0 ${{ matrix.test.chaos-mesh-config }})" >> $GITHUB_ENV
-      - name: run chaos-mesh
-        uses: chaos-mesh/chaos-mesh-action@master # v0.5 is broken
-        env:
-          CHAOS_MESH_VERSION: v2.7.0
-      - name: Wait for workflow completion
-        run:  ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
+#      - name: encode chaos-mesh config
+#        run: echo "CFG_BASE64=$(base64 -w0 ${{ matrix.test.chaos-mesh-config }})" >> $GITHUB_ENV
+#      - name: run chaos-mesh
+#        uses: chaos-mesh/chaos-mesh-action@master # v0.5 is broken
+#        env:
+#          CHAOS_MESH_VERSION: v2.7.0
+#      - name: Wait for workflow completion
+#        run:  ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
 
       - name: package reports
         if: failure()

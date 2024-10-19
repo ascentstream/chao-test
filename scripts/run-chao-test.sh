@@ -29,13 +29,13 @@ kubectl -n ${ASP_NAMESPACE} run chao-test --image=chao-test:latest --restart=Nev
       {
         "name": "host-log-path",
         "hostPath": {
-          "path": "/kind/chao-test/logs"
-        },
-        {
+        "path": "/kind/chao-test/logs"
+        }
+      },
+      {
         "name": "host-test-data-path",
         "hostPath": {
-          "path": "/kind/chao-test/data"
-        }
+        "path": "/kind/chao-test/data"
         }
       }
     ]
