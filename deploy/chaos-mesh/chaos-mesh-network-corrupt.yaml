@@ -26,6 +26,7 @@ spec:
           corrupt: '50'
           correlation: '50'
         mode: fixed-percent
+        value: '40'
         selector:
           namespaces:
             - pulsar-cluster

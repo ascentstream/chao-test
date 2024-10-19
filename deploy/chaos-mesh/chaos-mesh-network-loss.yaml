@@ -17,6 +17,11 @@ spec:
       networkChaos:
         action: loss
         direction: to
+        target:
+          mode: all
+          selector:
+            namespaces:
+              - pulsar-cluster
         loss:
           loss: '50'
           correlation: '50'
