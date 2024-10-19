@@ -17,10 +17,10 @@ spec:
       stressChaos:
         stressors:
           memory:
-            workers: 2
-            size: 100%
+            workers: 1
+            size: 90%
         mode: fixed-percent
-        value: '60'
+        value: '30'
         selector:
           namespaces:
             - pulsar-cluster
