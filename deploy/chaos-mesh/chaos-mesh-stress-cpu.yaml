@@ -1,0 +1,29 @@
+# https://chaos-mesh.dev/reference/release-2.1/
+# https://chaos-mesh.org/docs/
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Workflow
+metadata:
+  name: asp-platform
+spec:
+  entry: entry
+  templates:
+    - name: entry
+      templateType: Serial
+      children:
+        - stress-cpu
+    - name: stress-cpu
+      deadline: 60s
+      templateType: StressChaos
+      stressChaos:
+        stressors:
+          cpu:
+            workers: 2
+            load: 100
+        mode: fixed-percent
+        value: '60'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+            component: bookie

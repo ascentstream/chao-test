@@ -1,0 +1,34 @@
+# https://chaos-mesh.dev/reference/release-2.1/
+# https://chaos-mesh.org/docs/
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Workflow
+metadata:
+  name: asp-platform
+spec:
+  entry: entry
+  templates:
+    - name: entry
+      templateType: Serial
+      children:
+        - network-bandwidth
+    - name: network-bandwidth
+      deadline: 60s
+      templateType: NetworkChaos
+      networkChaos:
+        action: bandwidth
+        direction: both
+        target:
+          mode: all
+          selector:
+            namespaces:
+              - pulsar-cluster
+        bandwidth:
+          rate: 1mbps
+          limit: 20971520
+          buffer: 10000
+        mode: all
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
