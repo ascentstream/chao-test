@@ -66,7 +66,7 @@ public class ProducerTask {
                                 sendQueue.add(metadata.partition() + "," + metadata.offset());
                             } else {
                                 sendFailedCount.incrementAndGet();
-                                exception.printStackTrace();
+                                log.error("send error : ", exception);
                             }
                         }
                     });
@@ -89,7 +89,7 @@ public class ProducerTask {
                 log.info("sent msg : suc {}, failed {}, total {}.", sendCount.get(), sendFailedCount.get(),
                         producedMessage.size());
                 try {
-                    DataUtil.writeQueueToFile(sendQueue, producerOffsetFile);
+                    DataUtil.writeQueueToFile(sendQueue, producerOffsetFile, "partition,offset" );
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

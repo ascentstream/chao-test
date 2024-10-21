@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.Map;
 import lombok.Data;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
@@ -41,22 +42,26 @@ public class ConsumerThread extends Thread {
         running = true;
         while (running) {
             try {
-                for (ConsumerRecord<String, Integer> record : consumer.poll(Duration.ofMillis(1000))) {
+                ConsumerRecords<String, Integer> records = consumer.poll(Duration.ofMillis(100));
+
+                for (ConsumerRecord<String, Integer> record : records) {
                     consumerTask.getConsumedCount().incrementAndGet();
                     consumerTask.getReceiveQueue().add(record.partition() + "," + record.offset() + "," + record.key()
                             + "," + record.value());
                 }
                 if (consumerTask.getConsumedCount().get() >= consumerTask.getMsgTotalNum()) {
                     Map<TopicPartition, Long> partitionLag = getPartitionLag(consumer, consumer.assignment());
-                    partitionLag.forEach((topicPartition, lag) -> {
-                        log.info("get group[{}] lag by consumer: topic {}, partition {}, lag {}",
-                                consumer.groupMetadata().groupId(), topicPartition.topic(),
-                                topicPartition.partition(), lag);
-                    });
+                    if (!records.isEmpty()) {
+                        partitionLag.forEach((topicPartition, lag) -> {
+                            log.info("get group[{}] lag by consumer: topic {}, partition {}, lag {}",
+                                    consumer.groupMetadata().groupId(), topicPartition.topic(),
+                                    topicPartition.partition(), lag);
+                        });
+                    }
+
                     if (checkPartitionLag(partitionLag)) {
                         running = false;
                     }
-                    Thread.sleep(1000);
                 }
             } catch (Exception e) {
                 log.error("consumer poll error,", e);

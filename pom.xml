@@ -13,6 +13,8 @@
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <kafka.version>3.4.1</kafka.version>
+    <pulsar.group.id>com.ascentstream.pulsar</pulsar.group.id>
+    <pulsar.version>2.10.7.3</pulsar.version>
     <log4j-slf4j.version>2.9.1</log4j-slf4j.version>
     <log4j2.version>2.17.1</log4j2.version>
     <lombok.version>1.18.30</lombok.version>
@@ -25,6 +27,11 @@
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
       <version>${kafka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${pulsar.group.id}</groupId>
+      <artifactId>pulsar-client-admin-original</artifactId>
+      <version>${pulsar.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

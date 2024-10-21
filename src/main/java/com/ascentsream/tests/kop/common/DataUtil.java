@@ -53,6 +53,8 @@ public class DataUtil {
             Files.createDirectories(pathToFile.getParent());
         }
         BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+        writer.write(  "key,value");
+        writer.newLine();
         for (int i = 0; i < msgCount; i++) {
             String key = "";
             if (keyNum <= 0) {
@@ -74,8 +76,12 @@ public class DataUtil {
      * @return List<String>.
      *
      */
-    public static List<String> readToListFromFile(String fileName) throws IOException {
-        return Files.readAllLines(Paths.get(fileName));
+    public static List<String> readToListFromFile(String fileName, boolean removeTitle) throws IOException {
+        List<String> datas = Files.readAllLines(Paths.get(fileName));
+        if (removeTitle) {
+            datas.remove(0);
+        }
+        return datas;
     }
 
     /**
@@ -83,15 +89,18 @@ public class DataUtil {
      *
      * @param queue blockingQueue, multithreading safety
      * @param fileName the file name where the test data is stored
+     * @param title csv title
      *
      */
-    public static void writeQueueToFile(BlockingQueue<String> queue, String fileName) throws IOException {
+    public static void writeQueueToFile(BlockingQueue<String> queue, String fileName, String title) throws IOException {
 
         Path pathToFile = Paths.get(fileName);
         if (!Files.exists(pathToFile)) {
             Files.createDirectories(pathToFile.getParent());
         }
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            writer.write(title);
+            writer.newLine();
             while (!queue.isEmpty()) {
                 String str = queue.poll();
                 writer.write(str);
@@ -121,9 +130,9 @@ public class DataUtil {
     public static boolean checkDataNotLoss(String originMsgFile, String producerOffsetFile, String consumerMsgFile)
             throws IOException {
 
-        List<String> originMessages = readToListFromFile(originMsgFile);
-        List<String> producerOffset = readToListFromFile(producerOffsetFile);
-        List<String> consumerMessages = readToListFromFile(consumerMsgFile);
+        List<String> originMessages = readToListFromFile(originMsgFile, true);
+        List<String> producerOffset = readToListFromFile(producerOffsetFile, true);
+        List<String> consumerMessages = readToListFromFile(consumerMsgFile, true);
 
         Set<Integer> producerMsgs = new HashSet<>();
         Set<Integer> consumerMsgs = new HashSet<>();
@@ -178,7 +187,7 @@ public class DataUtil {
      *
      */
     public static boolean checkSendOffsetIncrement(String producerOffsetFile) throws IOException {
-        List<String> producerOffsets = readToListFromFile(producerOffsetFile);
+        List<String> producerOffsets = readToListFromFile(producerOffsetFile, true);
         Map<String, PriorityQueue<Integer>> offsets = new HashMap<>();
         for (String offsetStr : producerOffsets) {
             String[] arrays = offsetStr.split(",");
@@ -209,26 +218,27 @@ public class DataUtil {
      *
      */
     private static boolean checkReceiveOffsetContinuous(Map<String, List<Long>> partitionOffsets)  {
+        boolean result = true;
         for (String partition : partitionOffsets.keySet()) {
             List<Long> offsets = partitionOffsets.get(partition);
             long prexOffset = -1;
             for (long offset : offsets) {
                 if (offset != prexOffset + 1) {
-                    log.info("consumer partition {} offset not continuous, current {}, pre {}", partition, offset,
-                            prexOffset);
-                    return false;
+                    log.info("consumer partition {} offset not continuous, current {}, pre {}, lost data {}", partition, offset,
+                            prexOffset, (offset - prexOffset));
+                    result =  false;
                 }
                 prexOffset = offset;
             }
         }
-        return true;
+        return result;
     }
 
     public static int getTotalLines(String fileName) throws IOException {
         FileReader in = new FileReader(new File(fileName));
         LineNumberReader reader = new LineNumberReader(in);
         reader.skip(Long.MAX_VALUE);
-        int lines = reader.getLineNumber();
+        int lines = reader.getLineNumber()-1;
         reader.close();
         return lines;
     }

@@ -19,7 +19,7 @@ spec:
         action: pod-kill
         gracePeriod: 3
         mode: fixed-percent
-        value: '50'
+        value: '100'
         selector:
           namespaces:
             - pulsar-cluster
@@ -32,7 +32,7 @@ spec:
       podChaos:
         action: pod-failure
         mode:  fixed-percent
-        value: '30'
+        value: '100'
         selector:
           namespaces:
             - pulsar-cluster
