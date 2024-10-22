@@ -12,7 +12,7 @@ spec:
       children:
         - network-corrupt
     - name: network-corrupt
-      deadline: 120s
+      deadline: 60s
       templateType: NetworkChaos
       networkChaos:
         action: corrupt

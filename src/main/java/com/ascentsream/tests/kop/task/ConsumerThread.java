@@ -42,7 +42,7 @@ public class ConsumerThread extends Thread {
         running = true;
         while (running) {
             try {
-                ConsumerRecords<String, Integer> records = consumer.poll(Duration.ofMillis(100));
+                ConsumerRecords<String, Integer> records = consumer.poll(Duration.ofMillis(1000));
 
                 for (ConsumerRecord<String, Integer> record : records) {
                     consumerTask.getConsumedCount().incrementAndGet();

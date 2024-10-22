@@ -173,7 +173,8 @@ public class DataUtil {
         producerMsgs.removeAll(consumerMsgs);
         log.info("number of receive distinct data : {}", consumerMsgs.size());
         log.info("receive offset continuous check : {}", checkReceiveOffsetContinuous(partitionOffsets));
-        log.info("number of loss data : {}", producerMsgs.size());
+        log.info("number of loss data num: {}", producerMsgs.size());
+        log.info("number of loss data : {}", producerMsgs);
         log.info("send max offsets : all {}, partition {}", sendAllOffset, sendMaxOffsets);
         log.info("receive max offsets : all {}, partition {}", receiveAllOffset, receiveMaxOffsets);
         return ret;

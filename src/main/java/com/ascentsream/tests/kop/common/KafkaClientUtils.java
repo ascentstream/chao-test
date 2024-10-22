@@ -157,26 +157,27 @@ public final class KafkaClientUtils {
         TreeMap<String, Pair<String, List<ConsumerGroupsCli.PartitionAssignmentState>>> lags =
                 consumerGroupsCli.collectGroupOffsets(Arrays.asList(group));
         log.info("get group[{}] status : {} ", group, lags.get(group).getKey());
-        if (lags.get(group).getValue() != null) {
-            lags.get(group).getValue().forEach(partitionAssignmentState -> {
-                long logEndOffset = partitionAssignmentState.logEndOffset();
-                long lag = partitionAssignmentState.lag();
-                long offset = partitionAssignmentState.offset();
-                lagCount.addAndGet(lag);
-                if (offsetSum != null) {
-                    offsetSum.addAndGet(offset);
-                }
-                int partition = partitionAssignmentState.partition();
-                if (consumerLagOffsets != null) {
-                    consumerLagOffsets.put(partition, offset);
-                }
-                log.info("get group[{}] lag by admin: topic {}, partition {}, logEndOffset {}, offset {}, lag {}",
-                        partitionAssignmentState.group(), partitionAssignmentState.topic(), partition, logEndOffset,
-                        offset, lag);
-            });
-        } else {
-            throw new RuntimeException( "can not get Lag, " + lags.get(group).getKey());
+        try {
+            if (lags.get(group) != null && lags.get(group).getValue() != null) {
+                lags.get(group).getValue().forEach(partitionAssignmentState -> {
+                    long logEndOffset = partitionAssignmentState.logEndOffset();
+                    long lag = partitionAssignmentState.lag();
+                    long offset = partitionAssignmentState.offset();
+                    lagCount.addAndGet(lag);
+                    if (offsetSum != null) {
+                        offsetSum.addAndGet(offset);
+                    }
+                    int partition = partitionAssignmentState.partition();
+                    if (consumerLagOffsets != null) {
+                        consumerLagOffsets.put(partition, offset);
+                    }
+                    log.info("get group[{}] lag by admin: topic {}, partition {}, logEndOffset {}, offset {}, lag {}",
+                            partitionAssignmentState.group(), partitionAssignmentState.topic(), partition, logEndOffset,
+                            offset, lag);
+                });
+            }
+        } catch (Exception e) {
+            log.error("printGroupLag error, ", e);
         }
     }
-
 }
