@@ -17,11 +17,6 @@ spec:
       networkChaos:
         action: bandwidth
         direction: both
-        target:
-          mode: all
-          selector:
-            namespaces:
-              - pulsar-cluster
         bandwidth:
           rate: 1mbps
           limit: 20971520

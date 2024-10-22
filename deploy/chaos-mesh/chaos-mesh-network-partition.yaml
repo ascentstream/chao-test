@@ -10,18 +10,15 @@ spec:
     - name: entry
       templateType: Serial
       children:
-        - network-partition
-    - name: network-partition
-      deadline: 60s
+        - network-zookeeper
+        - network-broker
+        - network-bookie
+    - name: network-zookeeper
+      deadline: 30s
       templateType: NetworkChaos
       networkChaos:
         action: partition
         direction: both
-        target:
-          mode: all
-          selector:
-            namespaces:
-              - pulsar-cluster
         mode: fixed-percent
         value: '90'
         selector:
@@ -29,3 +26,32 @@ spec:
             - pulsar-cluster
           labelSelectors:
             cluster: pulsar-asp
+            component: zookeeper
+    - name: network-broker
+      deadline: 30s
+      templateType: NetworkChaos
+      networkChaos:
+        action: partition
+        direction: both
+        mode: fixed-percent
+        value: '90'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+            component: broker
+    - name: network-bookie
+      deadline: 30s
+      templateType: NetworkChaos
+      networkChaos:
+        action: partition
+        direction: both
+        mode: fixed-percent
+        value: '90'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+            component: bookie

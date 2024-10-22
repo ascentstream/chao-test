@@ -18,7 +18,7 @@ spec:
         - stress-cpu
         - stress-memory
     - name: pod-kill
-      deadline: 10s
+      deadline: 30s
       templateType: PodChaos
       podChaos:
         action: pod-kill
@@ -31,7 +31,7 @@ spec:
             cluster: pulsar-asp
             component: broker
     - name: pod-failure
-      deadline: 10s
+      deadline: 30s
       templateType: PodChaos
       podChaos:
         action: pod-failure
@@ -48,11 +48,6 @@ spec:
       networkChaos:
         action: loss
         direction: to
-        target:
-          mode: all
-          selector:
-            namespaces:
-              - pulsar-cluster
         loss:
           loss: '50'
           correlation: '50'
@@ -69,11 +64,6 @@ spec:
       networkChaos:
         action: partition
         direction: both
-        target:
-          mode: all
-          selector:
-            namespaces:
-              - pulsar-cluster
         mode: fixed-percent
         value: '50'
         selector:

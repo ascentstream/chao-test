@@ -10,25 +10,57 @@ spec:
     - name: entry
       templateType: Serial
       children:
-        - network-loss
-    - name: network-loss
-      deadline: 60s
+        - network-zookeeper
+        - network-broker
+        - network-bookie
+    - name: network-zookeeper
+      deadline: 30s
       templateType: NetworkChaos
       networkChaos:
         action: loss
         direction: to
-        target:
-          mode: all
-          selector:
-            namespaces:
-              - pulsar-cluster
         loss:
           loss: '50'
           correlation: '50'
         mode: fixed-percent
-        value: '80'
+        value: '50'
         selector:
           namespaces:
             - pulsar-cluster
           labelSelectors:
             cluster: pulsar-asp
+            component: zookeeper
+    - name: network-broker
+      deadline: 30s
+      templateType: NetworkChaos
+      networkChaos:
+        action: loss
+        direction: to
+        loss:
+          loss: '50'
+          correlation: '50'
+        mode: fixed-percent
+        value: '50'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+            component: broker
+    - name: network-bookie
+      deadline: 30s
+      templateType: NetworkChaos
+      networkChaos:
+        action: loss
+        direction: to
+        loss:
+          loss: '50'
+          correlation: '50'
+        mode: fixed-percent
+        value: '50'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+            component: bookie
