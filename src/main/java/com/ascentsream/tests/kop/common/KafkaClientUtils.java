@@ -74,6 +74,8 @@ public final class KafkaClientUtils {
         props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 1000);
         props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 1000 * 60 * 10);
         props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
+        props.put(ProducerConfig.RETRIES_CONFIG, Integer.MAX_VALUE);
+        props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
         props.put(ProducerConfig.METADATA_MAX_AGE_CONFIG, 10 * 60 * 1000);
         props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 10 * 60 * 1000);
         return createKafkaProducerUntilSuc(props);
