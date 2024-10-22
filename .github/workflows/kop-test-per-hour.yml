@@ -1,24 +1,7 @@
 name: kop test per hour
 on:
-  workflow_dispatch:
-    inputs:
-      as-platform-image-tag:
-        description: 'Please input as-platform image tag'
-        required: true
-        default: 'chao-test-latest'
-        type: string
-      send-msg-count:
-        description: 'Please enter the number of messages to send'
-        required: true
-        default: '50000'
-        type: number
-      max-waiting-time:
-        description: 'Please enter the maximum waiting time，s'
-        required: true
-        default: '600'
-        type: number
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/10 * * * *'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -37,14 +20,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REPO_PATH: ${{ github.workspace }}
-      RELEASE_BRANCH: ${{ github.event.inputs.branch }}
-      AS_PLATFORM_IMAGE_TAG: ${{ github.event.inputs.as-platform-image-tag }}
+      RELEASE_BRANCH: main
+      AS_PLATFORM_IMAGE_TAG: chao-test-latest
       REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
       KAFKA_BOOTSTRAP_SERVERS: pulsar-asp-broker-headless:9092
-      SEND_MSG_COUNT: ${{ github.event.inputs.send-msg-count }}
+      SEND_MSG_COUNT: 50000
       TOPIC_PARTITION: 10
-      MAX_WAITING_TIME: ${{ github.event.inputs.max-waiting-time }}
+      MAX_WAITING_TIME: 600
 
     strategy:
       # other jobs should run even if one test fails
