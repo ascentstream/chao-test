@@ -1,11 +1,11 @@
-name: kop chao test
+name: kop test per hour
 on:
   workflow_dispatch:
     inputs:
       as-platform-image-tag:
         description: 'Please input as-platform image tag'
         required: true
-        default: '2.10.7.4'
+        default: 'chao-test-latest'
         type: string
       send-msg-count:
         description: 'Please enter the number of messages to send'
@@ -18,7 +18,7 @@ on:
         default: '600'
         type: number
   schedule:
-    - cron: '0 12 * * *'
+    - cron: '*/5 * * * *'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
