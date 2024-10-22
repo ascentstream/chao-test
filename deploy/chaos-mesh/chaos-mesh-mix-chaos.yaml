@@ -1,0 +1,135 @@
+# https://chaos-mesh.dev/reference/release-2.1/
+# https://chaos-mesh.org/docs/
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Workflow
+metadata:
+  name: asp-platform
+spec:
+  entry: entry
+  templates:
+    - name: entry
+      templateType: Parallel
+      children:
+        - pod-kill
+        - pod-failure
+        - network-loss
+        - network-partition
+        - network-delay
+        - stress-cpu
+        - stress-memory
+    - name: pod-kill
+      deadline: 10s
+      templateType: PodChaos
+      podChaos:
+        action: pod-kill
+        gracePeriod: 0
+        mode: one
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+            component: broker
+    - name: pod-failure
+      deadline: 10s
+      templateType: PodChaos
+      podChaos:
+        action: pod-failure
+        mode:  fixed-percent
+        value: '50'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+    - name: network-loss
+      deadline: 60s
+      templateType: NetworkChaos
+      networkChaos:
+        action: loss
+        direction: to
+        target:
+          mode: all
+          selector:
+            namespaces:
+              - pulsar-cluster
+        loss:
+          loss: '50'
+          correlation: '50'
+        mode: fixed-percent
+        value: '50'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+    - name: network-partition
+      deadline: 60s
+      templateType: NetworkChaos
+      networkChaos:
+        action: partition
+        direction: both
+        target:
+          mode: all
+          selector:
+            namespaces:
+              - pulsar-cluster
+        mode: fixed-percent
+        value: '50'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+    - name: network-delay
+      deadline: 120s
+      templateType: NetworkChaos
+      networkChaos:
+        action: delay
+        direction: both
+        target:
+          mode: all
+          selector:
+            namespaces:
+              - pulsar-cluster
+        delay:
+          latency: 1000ms
+          correlation: '100'
+          jitter: 0ms
+        mode: fixed-percent
+        value: '50'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+    - name: stress-cpu
+      deadline: 60s
+      templateType: StressChaos
+      stressChaos:
+        stressors:
+          cpu:
+            workers: 2
+            load: 80
+        mode: fixed-percent
+        value: '50'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
+    - name: stress-memory
+      deadline: 60s
+      templateType: StressChaos
+      stressChaos:
+        stressors:
+          memory:
+            workers: 1
+            size: 60%
+        mode: fixed-percent
+        value: '10'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp

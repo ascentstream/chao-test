@@ -93,6 +93,10 @@ jobs:
             name: "alo-chaos-stress-memory",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress-memory.yaml"
           },
+          {
+            name: "alo-chaos-mix",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-mix-chaos.yaml"
+          }
         ]
 
     steps:

@@ -8,7 +8,7 @@ spec:
   entry: entry
   templates:
     - name: entry
-      templateType: Parallel
+      templateType: Serial
       children:
         - journal-io-delay
         - ledgers-io-delay
@@ -18,7 +18,7 @@ spec:
       ioChaos:
         action: latency
         volumePath: '/pulsar/data/bookkeeper/journal-0'
-        path: '/pulsar/data/bookkeeper/journal-0/*'
+        path: '/pulsar/data/bookkeeper/journal-0/current/'
         delay: '300ms'
         percent: 50
         mode: fixed-percent
@@ -35,7 +35,7 @@ spec:
       ioChaos:
         action: latency
         volumePath: '/pulsar/data/bookkeeper/ledgers-0'
-        path: '/pulsar/data/bookkeeper/ledgers-0/*'
+        path: '/pulsar/data/bookkeeper/ledgers-0/current/'
         delay: '500ms'
         percent: 50
         mode: fixed-percent

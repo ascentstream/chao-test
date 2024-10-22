@@ -8,17 +8,17 @@ spec:
   entry: entry
   templates:
     - name: entry
-      templateType: Parallel
+      templateType: Serial
       children:
         - journal-io-fault
         - ledgers-io-fault
     - name: journal-io-fault
-      deadline: 120s
+      deadline: 60s
       templateType: IOChaos
       ioChaos:
         action: fault
         volumePath: '/pulsar/data/bookkeeper/journal-0'
-        path: '/pulsar/data/bookkeeper/journal-0/*'
+        path: '/pulsar/data/bookkeeper/journal-0/current/'
         errno: 5
         percent: 70
         mode: fixed-percent
@@ -30,12 +30,12 @@ spec:
             cluster: pulsar-asp
             component: bookie
     - name: ledgers-io-fault
-      deadline: 120s
+      deadline: 60s
       templateType: IOChaos
       ioChaos:
         action: fault
         volumePath: '/pulsar/data/bookkeeper/ledgers-0'
-        path: '/pulsar/data/bookkeeper/ledgers-0/*'
+        path: '/pulsar/data/bookkeeper/ledgers-0/current/'
         errno: 5
         percent: 70
         mode: fixed-percent
