@@ -79,19 +79,19 @@ public class AtLeastOnceMessaging {
 
         ConsumerGroupsCli consumerGroupsCli = new ConsumerGroupsCli(kafkaAdmin);
         while (true) {
+            long waitingTime = (System.currentTimeMillis() - startTime);
+            if (waitingTime > maxWaitingTime * 1000) {
+                log.info("Waiting for {} exceed {} s, will exit!", waitingTime, maxWaitingTime);
+                producerTask.setDone(true);
+                Thread.sleep(10 * 1000);
+                break;
+            }
             log.info("group[{}] received msg count {} ", group, consumedCount.get());
             try {
                 AtomicLong lagCount = new AtomicLong();
                 KafkaClientUtils.printGroupLag(consumerGroupsCli, group, lagCount);
                 if (lagCount.get() == 0L && consumedCount.get() >= producerMessages.size() && producerTask.isDone()) {
                     Thread.sleep(10000);
-                    break;
-                }
-                long waitingTime = (System.currentTimeMillis() - startTime);
-                if (waitingTime > maxWaitingTime * 1000) {
-                    log.info("Waiting for {} exceed {} s, will exit!", waitingTime, maxWaitingTime);
-                    producerTask.setDone(true);
-                    Thread.sleep(10 * 1000);
                     break;
                 }
             } catch (Exception e) {
