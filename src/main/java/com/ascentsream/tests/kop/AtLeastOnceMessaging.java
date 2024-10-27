@@ -121,8 +121,12 @@ public class AtLeastOnceMessaging {
         log.info("at least one scenario test result : {}.", checkSuc);
         consumerTask.close();
         PulsarClientUtils.printInternalStats(pulsarAdmin, topic);
-        kafkaAdmin.deleteTopics(Collections.singleton(topic)).all().get();
-        kafkaAdmin.close();
-        pulsarAdmin.close();
+        try {
+            kafkaAdmin.deleteTopics(Collections.singleton(topic)).all().get();
+            kafkaAdmin.close();
+            pulsarAdmin.close();
+        } catch (Exception e) {
+            log.error("clean resource error, ", e);
+        }
     }
 }
