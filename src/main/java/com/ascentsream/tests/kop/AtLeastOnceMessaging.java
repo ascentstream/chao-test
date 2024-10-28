@@ -115,14 +115,14 @@ public class AtLeastOnceMessaging {
         Map<Integer, Long> consumerLagOffsets = new TreeMap<>();
         AtomicLong offsetCount = new AtomicLong();
         AtomicLong lagCount = new AtomicLong();
-        KafkaClientUtils.printGroupLag(consumerGroupsCli, group, lagCount, consumerLagOffsets, offsetCount);
         log.info("offsets by admin : all offset {} , partitions {}, lag {}", offsetCount.get(), consumerLagOffsets,
                 lagCount);
         log.info("at least one scenario test result : {}.", checkSuc);
         consumerTask.close();
-        PulsarClientUtils.printInternalStats(pulsarAdmin, topic);
         try {
-            kafkaAdmin.deleteTopics(Collections.singleton(topic)).all().get();
+            KafkaClientUtils.printGroupLag(consumerGroupsCli, group, lagCount, consumerLagOffsets, offsetCount);
+            PulsarClientUtils.printInternalStats(pulsarAdmin, topic);
+            kafkaAdmin.deleteTopics(Collections.singleton(topic)).all();
             kafkaAdmin.close();
             pulsarAdmin.close();
         } catch (Exception e) {
