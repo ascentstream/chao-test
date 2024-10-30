@@ -23,6 +23,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -98,8 +100,8 @@ public class ConsumerGroupsCli implements Closeable {
 
     private static <T> T wait(KafkaFuture<T> future) {
         try {
-            return future.get();
-        } catch (InterruptedException | ExecutionException e) {
+            return future.get(60, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new RuntimeException(e);
         }
     }
