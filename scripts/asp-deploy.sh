@@ -23,7 +23,9 @@ check_pod_status() {
         echo "Pod $pod_name not exit！"
         exit 1
     fi
-
+    count=0
+    max_checks=60
+    interval=5
     while true; do
         echo "check pod status"
         pod_ready=$(kubectl get pod $pod_name -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' -n $ASP_NAMESPACE)
@@ -32,7 +34,13 @@ check_pod_status() {
             break
         else
             kubectl get pod  -n ${ASP_NAMESPACE}
-            sleep 5
+            sleep $interval
+            count=$((count + 1))
+            if [ $count -eq $max_checks ]; then
+                kubectl -n $ASP_NAMESPACE logs $pod_name -c check-broker
+                echo "Maximum checks reached. Exiting."
+                exit 1
+            fi
         fi
     done
 }
