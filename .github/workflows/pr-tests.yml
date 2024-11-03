@@ -111,23 +111,23 @@ jobs:
           cluster_name: kind
           kubectl_version: v1.25.5
 
-#      - name: deploy as-platform
-#        run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
-#
-#      - name: ${{ matrix.test.name }}
-#        run: |
-#          kind load docker-image chao-test:latest
-#          ${{ env.REPO_PATH }}/scripts/run-chao-test.sh
-#          kubectl -n pulsar-cluster get pods
-      - name: encode chaos-mesh config
-        run: echo "CFG_BASE64=$(base64 -w0 ${{ matrix.test.chaos-mesh-config }})" >> $GITHUB_ENV
+      - name: deploy as-platform
+        run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
+
+      - name: ${{ matrix.test.name }}
+        run: |
+          kind load docker-image chao-test:latest
+          ${{ env.REPO_PATH }}/scripts/run-chao-test.sh
+          kubectl -n pulsar-cluster get pods
       - name: run chaos-mesh
         run: |
           curl -sSL https://mirrors.chaos-mesh.org/v2.7.0/install.sh | bash -s -- --local kind --kind-version v0.17.0 --name kind  --k8s-version  1.25.3
           kubectl get pod  -n chaos-mesh
           kubectl apply -f ${{ matrix.test.chaos-mesh-config }}
-#      - name: Wait for workflow completion
-#        run:  ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
+          kubectl -n chaos-mesh get workflow
+          kubectl -n chaos-mesh get workflownode --selector="chaos-mesh.org/workflow=asp-platform"
+      - name: Wait for workflow completion
+        run:  ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
 
       - name: package reports
         if: failure()
