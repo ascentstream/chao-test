@@ -113,18 +113,22 @@ jobs:
 
       - name: deploy as-platform
         run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
-
+      - name: deploy chaos-mesh
+        run: |
+          curl -sSL https://mirrors.chaos-mesh.org/v2.7.0/install.sh | bash -s -- --local kind --kind-version v0.17.0 --name kind  --k8s-version  1.25.3
+          kubectl get pod  -n chaos-mesh
       - name: ${{ matrix.test.name }}
         run: |
           kind load docker-image chao-test:latest
           ${{ env.REPO_PATH }}/scripts/run-chao-test.sh
           kubectl -n pulsar-cluster get pods
-      - name: run chaos-mesh
+      - name: injecting faults
         run: |
-          curl -sSL https://mirrors.chaos-mesh.org/v2.7.0/install.sh | bash -s -- --local kind --kind-version v0.17.0 --name kind  --k8s-version  1.25.3
-          kubectl get pod  -n chaos-mesh
+          sleep 30
           kubectl -n chaos-mesh apply -f ${{ matrix.test.chaos-mesh-config }}
+          echo " get chaos-mesh workflow "
           kubectl -n chaos-mesh get workflow
+          echo " get chaos-mesh workflownode "
           kubectl -n chaos-mesh get workflownode --selector="chaos-mesh.org/workflow=asp-platform"
       - name: Wait for workflow completion
         run:  ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
