@@ -18,6 +18,8 @@ jobs:
   alt-chao:
     runs-on: ubuntu-latest
     env:
+      JAVA_VERSION: 17
+      JAVA_DISTRIBUTION: temurin
       REPO_PATH: ${{ github.workspace }}
       AS_PLATFORM_IMAGE_TAG: chao-test-latest
       REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
