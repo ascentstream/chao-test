@@ -126,9 +126,9 @@ jobs:
         run: |
           sleep 30
           kubectl -n chaos-mesh apply -f ${{ matrix.test.chaos-mesh-config }}
-          echo " get chaos-mesh workflow "
+          echo "get chaos-mesh workflow "
           kubectl -n chaos-mesh get workflow
-          echo " get chaos-mesh workflownode "
+          echo "get chaos-mesh workflownode "
           kubectl -n chaos-mesh get workflownode --selector="chaos-mesh.org/workflow=asp-platform"
       - name: Wait for workflow completion
         run:  ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
