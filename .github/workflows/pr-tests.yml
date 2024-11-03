@@ -1,31 +1,30 @@
-name: kop test per hour
+name: asp-manager-console tests
+
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 */1 * * *'
+  pull_request:
+    branches:
+      - main
+      - branch-*
+  push:
+    branches:
+      - main
+      - branch-*
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-env:
-  JAVA_VERSION: 17
-  JAVA_DISTRIBUTION: temurin
-  GITHUB_TOKEN: ${{ secrets.AS_GITHUB_TOKEN }}
-  GIT_AUTHOR_NAME: github-actions[bot]
-  GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-  GIT_COMMITTER_NAME: github-actions[bot]
-  GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
 
 jobs:
   alt-chao:
     runs-on: ubuntu-latest
     env:
+      JAVA_VERSION: 17
+      JAVA_DISTRIBUTION: temurin
       REPO_PATH: ${{ github.workspace }}
-      RELEASE_BRANCH: main
       AS_PLATFORM_IMAGE_TAG: chao-test-latest
       REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
-      KAFKA_BOOTSTRAP_SERVERS: "pulsar-asp-broker-headless:9092"
+      KAFKA_BOOTSTRAP_SERVERS: pulsar-asp-broker-headless:9092
       SEND_MSG_COUNT: 50000
       TOPIC_PARTITION: 10
       MAX_WAITING_TIME: 600
