@@ -1,4 +1,4 @@
-name: asp-manager-console tests
+name: pr tests
 
 on:
   pull_request:
