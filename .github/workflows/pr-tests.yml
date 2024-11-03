@@ -124,7 +124,8 @@ jobs:
       - name: run chaos-mesh
         run: |
           curl -sSL https://mirrors.chaos-mesh.org/v2.7.0/install.sh | bash -s -- --local kind --kind-version v0.17.0 --name kind  --k8s-version  1.25.3
-          kubectl -f apply ${{ matrix.test.chaos-mesh-config }}
+          kubectl get pod  -n chaos-mesh
+          kubectl apply -f ${{ matrix.test.chaos-mesh-config }}
 #      - name: Wait for workflow completion
 #        run:  ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
 
