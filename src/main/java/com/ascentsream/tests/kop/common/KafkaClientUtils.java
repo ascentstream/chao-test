@@ -165,7 +165,10 @@ public final class KafkaClientUtils {
             if (lags.get(group) != null && lags.get(group).getValue() != null) {
                 lags.get(group).getValue().forEach(partitionAssignmentState -> {
                     long logEndOffset = partitionAssignmentState.logEndOffset();
-                    long lag = partitionAssignmentState.lag() == null ? -1 : partitionAssignmentState.lag();
+                    if (partitionAssignmentState.lag() == null) {
+                        return;
+                    }
+                    long lag = partitionAssignmentState.lag();
                     long offset = partitionAssignmentState.offset();
                     lagCount.addAndGet(lag);
                     if (offsetSum != null) {
