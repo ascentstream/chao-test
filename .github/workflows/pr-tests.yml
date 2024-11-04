@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  alt-chao:
+  alo-chao:
     runs-on: ubuntu-latest
     env:
       JAVA_VERSION: 17
@@ -180,9 +180,116 @@ jobs:
       matrix:
         test: [
           {
-            name: "idempotence-transaction",
+            name: "idempotence-no-transaction",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-idem-network-delay.yaml"
           }
+        ]
+
+    steps:
+      - name: Checkout chao-test codebase
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+      - name: Build
+        run: mvn clean package
+      - name: Build docker
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: false
+          tags: chao-test:latest
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
+          password: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
+
+      - uses: helm/kind-action@v1.5.0
+        with:
+          cluster_name: kind
+          kubectl_version: v1.25.5
+
+      - name: deploy as-platform
+        run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
+      - name: deploy chaos-mesh
+        run: |
+          curl -sSL https://mirrors.chaos-mesh.org/v2.7.0/install.sh | bash -s -- --local kind --kind-version v0.17.0 --name kind  --k8s-version  1.25.3
+          kubectl get pod  -n chaos-mesh
+      - name: ${{ matrix.test.name }}
+        run: |
+          kind load docker-image chao-test:latest
+          ${{ env.REPO_PATH }}/scripts/run-chao-test.sh
+          kubectl -n pulsar-cluster get pods
+      - name: injecting faults
+        run: |
+          sleep 30
+          kubectl -n chaos-mesh apply -f ${{ matrix.test.chaos-mesh-config }}
+          echo "get chaos-mesh workflow "
+          kubectl -n chaos-mesh get workflow
+          echo "get chaos-mesh workflownode "
+          kubectl -n chaos-mesh get workflownode --selector="chaos-mesh.org/workflow=asp-platform"
+      - name: Wait for workflow completion
+        run: ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
+
+      - name: package reports
+        if: failure()
+        run: |
+          rm -rf artifacts
+          mkdir artifacts
+          mkdir artifacts/chao-test
+          mkdir artifacts/pulsar
+          current_dir=$PWD
+          kubectl -n pulsar-cluster logs chao-test > ${current_dir}/artifacts/chao-test/chao-test.log
+          ${{ env.REPO_PATH }}/scripts/cp-logs-from-kind.sh  ${current_dir}/artifacts/chao-test
+          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-2.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
+          zip -r artifacts-${{ matrix.test.name }}.zip artifacts
+
+      - uses: actions/upload-artifact@master
+        name: upload reports
+        if: failure()
+        with:
+          name: artifacts-${{ matrix.test.name }}
+          path: artifacts-${{ matrix.test.name }}.zip
+
+  eo-chao:
+    runs-on: ubuntu-latest
+    env:
+      JAVA_VERSION: 17
+      JAVA_DISTRIBUTION: temurin
+      REPO_PATH: ${{ github.workspace }}
+      AS_PLATFORM_IMAGE_TAG: chao-test-latest
+      REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
+      KAFKA_BOOTSTRAP_SERVERS: pulsar-asp-broker-headless:9092
+      SEND_MSG_COUNT: 1000
+      TOPIC: transaction-1,transaction-2
+      TOPIC_PARTITION: 10
+      MAX_WAITING_TIME: 600
+      MAIN_CLASS: com.ascentsream.tests.kop.ExactlyOnceMessaging
+
+    strategy:
+      # other jobs should run even if one test fails
+      fail-fast: false
+      matrix:
+        test: [
+          {
+            name: "eo-normal",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-no-chaos.yaml"
+          },
+          {
+            name: "eo-pod-chaos",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-exactly-pod-chaos.yaml"
+          },
         ]
 
     steps:

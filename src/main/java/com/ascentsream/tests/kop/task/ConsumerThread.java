@@ -43,11 +43,10 @@ public class ConsumerThread extends Thread {
         while (running) {
             try {
                 ConsumerRecords<String, Integer> records = consumer.poll(Duration.ofMillis(1000));
-
                 for (ConsumerRecord<String, Integer> record : records) {
                     consumerTask.getConsumedCount().incrementAndGet();
                     consumerTask.getReceiveQueue().add(record.partition() + "," + record.offset() + "," + record.key()
-                            + "," + record.value());
+                            + "," + record.value()  + "," + record.topic());
                 }
                 if (consumerTask.getConsumedCount().get() >= consumerTask.getMsgTotalNum()) {
                     Map<TopicPartition, Long> partitionLag = getPartitionLag(consumer, consumer.assignment());
