@@ -39,10 +39,11 @@ import org.apache.pulsar.common.policies.data.RetentionPolicies;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AtLeastOnceMessaging {
-    private static final Logger log = LoggerFactory.getLogger(AtLeastOnceMessaging.class);
+public class IdempotenceMessaging {
+    private static final Logger log = LoggerFactory.getLogger(IdempotenceMessaging.class);
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
+    public static void main(String[] args)
+            throws ExecutionException, InterruptedException, IOException {
         long startTime = System.currentTimeMillis();
         String originMsgFile = DATA_ROOT_PATH + "/chao_test/origin/" + "messaging-key.csv";
         String consumerMsgFile = DATA_ROOT_PATH+ "/chao_test/at-least-once/consumer/" + "revive-messaging.csv";
@@ -70,14 +71,13 @@ public class AtLeastOnceMessaging {
         topicConfig.put(TopicConfig.RETENTION_MS_CONFIG, String.valueOf(10 * 60 * 1000L));
         newTopic.configs(topicConfig);
         PulsarAdmin pulsarAdmin = PulsarClientUtils.createPulsarAdmin(pulsarWebUrl);
-//        kafkaAdmin.createTopics(
-//                Collections.singleton(new NewTopic(topic, partitionNum, (short) 2))).all().get();
         try {
             pulsarAdmin.topics().createPartitionedTopic(topic, partitionNum);
             pulsarAdmin.topicPolicies().setRetention(topic, new RetentionPolicies(-1, -1));
         } catch (Exception e) {
             log.error("createPartitionedTopic error : ", e);
         }
+
 
         AtomicInteger sendCount = new AtomicInteger();
         AtomicInteger consumedCount = new AtomicInteger();
@@ -115,14 +115,13 @@ public class AtLeastOnceMessaging {
         log.info("group[{}] received msg count {} ", group, consumedCount.get());
 
         DataUtil.writeQueueToFile(receiveQueue, consumerMsgFile, "partition,offset,key,value");
-        log.info("\n*************At least once test end *************\n");
+        log.info("\n*************Idempotence Messaging test end *************\n");
         log.info("*************results analysis*************");
         log.info("number of original messages : {}", DataUtil.getTotalLines(originMsgFile));
         log.info("number of successfully sent messages : {}", DataUtil.getTotalLines(producerOffsetFile));
         log.info("number of successful consumption : {}", DataUtil.getTotalLines(consumerMsgFile));
 
-        boolean checkProduceSuc = DataUtil.checkSendOffsetIncrement(producerOffsetFile);
-        log.info("check whether the sent offset is increasing : {}" , checkProduceSuc);
+        boolean checkProduceSuc = DataUtil.checkSendOffsetSequence(producerOffsetFile);
 
         boolean checkSuc = DataUtil.checkDataNotLoss(originMsgFile, producerOffsetFile, consumerMsgFile);
         Map<Integer, Long> consumerLagOffsets = new TreeMap<>();
@@ -130,6 +129,7 @@ public class AtLeastOnceMessaging {
         AtomicLong lagCount = new AtomicLong();
         log.info("offsets by admin : all offset {} , partitions {}, lag {}", offsetCount.get(), consumerLagOffsets,
                 lagCount);
+        log.info("check whether the sent offset is sequence : {}" , checkProduceSuc);
         log.info("chao test result : {}.", checkSuc);
         consumerTask.close();
         try {
