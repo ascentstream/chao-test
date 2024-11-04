@@ -36,7 +36,7 @@ check_pod_status() {
 pod_name="chao-test"
 check_pod_status $pod_name
 kubectl -n $ASP_NAMESPACE logs -f $pod_name
-RESULT=$(kubectl -n $ASP_NAMESPACE logs chao-test | grep "at least one scenario test result :")
+RESULT=$(kubectl -n $ASP_NAMESPACE logs chao-test | grep "chao test result :")
 echo $RESULT
 VALUE=$(echo "$RESULT" | awk -F':' '{print tolower($NF)}' | xargs)
 if [ "$VALUE" = "true." ]; then

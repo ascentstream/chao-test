@@ -212,6 +212,37 @@ public class DataUtil {
     }
 
     /**
+     * check producer send offset increment .
+     *
+     * @param producerOffsetFile .
+     * @return boolean
+     *
+     */
+    public static boolean checkSendOffsetSequence(String producerOffsetFile) throws IOException {
+        List<String> producerOffsets = readToListFromFile(producerOffsetFile, true);
+        Map<String, PriorityQueue<Integer>> offsets = new HashMap<>();
+        for (String offsetStr : producerOffsets) {
+            String[] arrays = offsetStr.split(",");
+            String partition = arrays[0];
+            int value = Integer.valueOf(arrays[1]);
+            if (!offsets.containsKey(partition)) {
+                offsets.put(partition, new PriorityQueue<>(Comparator.reverseOrder()));
+                offsets.get(partition).add(value);
+            } else {
+                int max = offsets.get(partition).peek();
+                if (value != max + 1) {
+                    log.info("producerOffsetFile {} partition {} not sequence, current {}, pre {}",
+                            producerOffsetFile, partition, value, max);
+                    return false;
+                } else {
+                    offsets.get(partition).add(value);
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
      * check consumer receive offset increment .
      *
      * @param partitionOffsets .
