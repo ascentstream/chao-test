@@ -287,7 +287,7 @@ public class DataUtil {
                             producerOffsetFile, topic, partition, offset, max);
                     return false;
                 } else {
-                    offsets.get(topic).add(offset);
+                    offsets.get(key).add(offset);
                 }
             }
         }
