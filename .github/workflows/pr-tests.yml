@@ -291,9 +291,9 @@ jobs:
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-exactly-pod-chaos.yaml"
           },
           {
-            name: "eo-chaos-network-delay",",
+            name: "eo-chaos-network-delay",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-idem-network-delay.yaml"
-          },
+          }
         ]
 
     steps:
