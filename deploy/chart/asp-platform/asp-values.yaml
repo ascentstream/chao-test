@@ -1302,6 +1302,8 @@ broker:
     PULSAR_PREFIX_offsetsTopicNumPartitions: "8"
     PULSAR_PREFIX_kafkaTxnLogTopicNumPartitions: "8"
     PULSAR_PREFIX_kafkaTxnProducerStateTopicNumPartitions: "1"
+    PULSAR_PREFIX_kafkaTransactionProducerIdsStoredOnPulsar: "true"
+    PULSAR_PREFIX_kafkaTransactionCoordinatorEnabled: "true"
     brokerDeleteInactiveTopicsEnabled: "false"
     brokerDeduplicationEnabled: "true"
   ### Broker service account
