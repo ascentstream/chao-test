@@ -186,11 +186,10 @@ public class DataUtil {
     }
 
     /**
-     * Check if data is lost.
+     * check Exactly Consumer.
      *
-     * @param producerMessages [key , value ]
-     *      key_8,999
-     *      key_9,1000
+     * @param producerMessages
+     *
      * @param producerOffsetFile [partition, offset]
      *      0,1
      *      0,2
@@ -266,7 +265,7 @@ public class DataUtil {
     }
 
     /**
-     * check producer send offset increment .
+     * check producer send offset sequence .
      *
      * @param producerOffsetFile .
      * @return boolean
