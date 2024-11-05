@@ -288,12 +288,40 @@ jobs:
           },
           {
             name: "eo-chaos-pod",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-exactly-pod-chaos.yaml"
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-pod-chaos.yaml"
           },
           {
             name: "eo-chaos-network-delay",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-idem-network-delay.yaml"
-          }
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-delay.yaml"
+          },
+          {
+            name: "eo-chaos-network-loss",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-loss.yaml"
+          },
+          {
+            name: "eo-chaos-network-corrupt",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-corrupt.yaml"
+          },
+          {
+            name: "eo-chaos-network-bandwidth",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-bandwidth.yaml"
+          },
+          {
+            name: "eo-chaos-network-partition",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-partition.yaml"
+          },
+          {
+            name: "eo-chaos-stress-cpu",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress-cpu.yaml"
+          },
+          {
+            name: "eo-chaos-stress-memory",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress-memory.yaml"
+          },
+          {
+            name: "eo-chaos-mix",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-mix-chaos.yaml"
+          },
         ]
 
     steps:

@@ -215,7 +215,11 @@ public class DataUtil {
         consumerMessages.forEach(str -> {
             String[] array = str.split(",");
             int value = Integer.parseInt(array[3]);
+            if (consumerMsgs.contains(value)) {
+                log.warn("Repeating messages {}", str);
+            }
             consumerMsgs.add(value);
+
         });
 
         boolean ret = producerMsgs.size() == originMessages.size() && consumerMsgs.containsAll(producerMsgs)

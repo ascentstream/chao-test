@@ -138,11 +138,6 @@ public class ExactlyOnceMessaging {
         boolean checkProduceSuc = DataUtil.checkSendOffsetIncrement(producerOffsetFile);
         log.info("check whether the sent offset is increasing : {}" , checkProduceSuc);
         boolean checkSuc = DataUtil.checkExactlyConsumer(producerMessages, producerOffsetFile, consumerMsgFile);
-        Map<Integer, Long> consumerLagOffsets = new TreeMap<>();
-        AtomicLong offsetCount = new AtomicLong();
-        AtomicLong lagCount = new AtomicLong();
-        log.info("offsets by admin : all offset {} , partitions {}, lag {}", offsetCount.get(), consumerLagOffsets,
-                lagCount);
         log.info("chao test result : {}.", checkSuc);
         consumerTask.close();
         try {

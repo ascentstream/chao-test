@@ -69,7 +69,7 @@ public class ProducerTransactionTask {
                             int finalValue = value;
                             values.put(topic, finalValue);
                             Future<RecordMetadata> future =
-                                    producer.send(new ProducerRecord<String, Integer>(topic, key, finalValue));
+                                    producer.send(new ProducerRecord<String, Integer>(topic, finalValue));
                             futures.add(future);
                         }
                         List<RecordMetadata> recordMetadatas = new ArrayList<>();
