@@ -91,6 +91,14 @@ public class ProducerTransactionTask {
                         }
                         --i;
                         log.error("abort transaction : ", e);
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                    if (isDone) {
+                        break;
                     }
                 }
             }
