@@ -17,7 +17,7 @@ env:
   GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
 
 jobs:
-  alt-chao:
+  alo-chao:
     runs-on: ubuntu-latest
     env:
       REPO_PATH: ${{ github.workspace }}
@@ -181,7 +181,7 @@ jobs:
       matrix:
         test: [
           {
-            name: "idempotence-transaction",
+            name: "idempotence-no-transaction",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-idem-network-delay.yaml"
           }
         ]

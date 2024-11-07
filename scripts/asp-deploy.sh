@@ -24,7 +24,7 @@ check_pod_status() {
         exit 1
     fi
     count=0
-    max_checks=60
+    max_checks=120
     interval=5
     while true; do
         echo "check pod status"

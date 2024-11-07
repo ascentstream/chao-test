@@ -1,6 +1,5 @@
 package com.ascentsream.tests.kop.task;
 
-import static com.ascentsream.tests.kop.common.KafkaClientUtils.getKafkaProducer;
 import com.ascentsream.tests.kop.common.DataUtil;
 import java.io.IOException;
 import java.util.List;
@@ -25,7 +24,7 @@ public class ProducerTask {
     private final String producerOffsetFile;
     private volatile boolean isDone = false;
 
-    public ProducerTask(String bootstrapServers, String topic,
+    public ProducerTask(KafkaProducer<String, Integer> producer, String topic,
                         List<String> producerMessages,
                         String producerOffsetFile,
                         AtomicInteger sendCount,
@@ -35,7 +34,7 @@ public class ProducerTask {
         this.sendCount = sendCount;
         this.sendQueue = sendQueue;
         this.topic = topic;
-        this.producer = getKafkaProducer(bootstrapServers);
+        this.producer = producer;
     }
 
     public void start() {
@@ -58,12 +57,14 @@ public class ProducerTask {
                     } catch (InterruptedException e) {
                         log.error("InterruptedException ", e);
                     }
-                    producer.send(new ProducerRecord<String, Integer>(topic, key, value), new Callback() {
+                    int finalValue = value;
+                    producer.send(new ProducerRecord<String, Integer>(topic, key, finalValue), new Callback() {
                         @Override
                         public void onCompletion(RecordMetadata metadata, Exception exception) {
                             if (exception == null) {
                                 sendCount.incrementAndGet();
-                                sendQueue.add(metadata.partition() + "," + metadata.offset());
+                                sendQueue.add(metadata.partition() + "," + metadata.offset() + "," + finalValue + ","
+                                        + topic);
                             } else {
                                 sendFailedCount.incrementAndGet();
                                 log.error("send error : ", exception);
@@ -89,7 +90,7 @@ public class ProducerTask {
                 log.info("sent msg : suc {}, failed {}, total {}.", sendCount.get(), sendFailedCount.get(),
                         producedMessage.size());
                 try {
-                    DataUtil.writeQueueToFile(sendQueue, producerOffsetFile, "partition,offset" );
+                    DataUtil.writeQueueToFile(sendQueue, producerOffsetFile, "partition,offset,value,topic" );
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

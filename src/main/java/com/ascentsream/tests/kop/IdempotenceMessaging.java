@@ -14,6 +14,7 @@
 package com.ascentsream.tests.kop;
 
 import static com.ascentsream.tests.kop.common.Constants.DATA_ROOT_PATH;
+import static com.ascentsream.tests.kop.common.KafkaClientUtils.getKafkaProducer;
 import com.ascentsream.tests.kop.common.ConsumerGroupsCli;
 import com.ascentsream.tests.kop.common.DataUtil;
 import com.ascentsream.tests.kop.common.KafkaClientUtils;
@@ -33,6 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.common.policies.data.RetentionPolicies;
@@ -58,7 +60,7 @@ public class IdempotenceMessaging {
 
         BlockingQueue<String> receiveQueue = new LinkedBlockingQueue<>(msgCount * 2);
         BlockingQueue<String> sendQueue = new LinkedBlockingQueue<>(msgCount * 2);
-        DataUtil.createTestData(originMsgFile, partitionNum, msgCount);
+        DataUtil.createTestData(originMsgFile, "key", partitionNum, msgCount);
         List<String> producerMessages = DataUtil.readToListFromFile(originMsgFile, true);
         AdminClient kafkaAdmin = KafkaClientUtils.createKafkaAdmin(bootstrapServers);
 
@@ -78,12 +80,12 @@ public class IdempotenceMessaging {
             log.error("createPartitionedTopic error : ", e);
         }
 
-
         AtomicInteger sendCount = new AtomicInteger();
         AtomicInteger consumedCount = new AtomicInteger();
-        ConsumerTask consumerTask = new ConsumerTask(bootstrapServers, topic, group, partitionNum,
-                producerMessages.size(), consumedCount, receiveQueue);
-        ProducerTask producerTask = new ProducerTask(bootstrapServers, topic, producerMessages, producerOffsetFile,
+        ConsumerTask consumerTask = new ConsumerTask(bootstrapServers, Collections.singleton(topic), group,
+                partitionNum, producerMessages.size(), consumedCount, receiveQueue, false);
+        KafkaProducer<String, Integer> producer = getKafkaProducer(bootstrapServers);
+        ProducerTask producerTask = new ProducerTask(producer, topic, producerMessages, producerOffsetFile,
                 sendCount, sendQueue);
         Thread.sleep(5000);
         producerTask.start();
@@ -114,7 +116,7 @@ public class IdempotenceMessaging {
         }
         log.info("group[{}] received msg count {} ", group, consumedCount.get());
 
-        DataUtil.writeQueueToFile(receiveQueue, consumerMsgFile, "partition,offset,key,value");
+        DataUtil.writeQueueToFile(receiveQueue, consumerMsgFile, "partition,offset,key,value,topic");
         log.info("\n*************Idempotence Messaging test end *************\n");
         log.info("*************results analysis*************");
         log.info("number of original messages : {}", DataUtil.getTotalLines(originMsgFile));
@@ -127,13 +129,13 @@ public class IdempotenceMessaging {
         Map<Integer, Long> consumerLagOffsets = new TreeMap<>();
         AtomicLong offsetCount = new AtomicLong();
         AtomicLong lagCount = new AtomicLong();
-        log.info("offsets by admin : all offset {} , partitions {}, lag {}", offsetCount.get(), consumerLagOffsets,
-                lagCount);
         log.info("check whether the sent offset is sequence : {}" , checkProduceSuc);
         log.info("chao test result : {}.", checkSuc);
         consumerTask.close();
         try {
             KafkaClientUtils.printGroupLag(consumerGroupsCli, group, lagCount, consumerLagOffsets, offsetCount);
+            log.info("offsets by admin : all offset {} , partitions {}, lag {}", offsetCount.get(), consumerLagOffsets,
+                    lagCount);
             PulsarClientUtils.printInternalStats(pulsarAdmin, topic);
             kafkaAdmin.deleteTopics(Collections.singleton(topic)).all();
             kafkaAdmin.close();

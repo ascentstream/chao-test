@@ -17,6 +17,7 @@ import static com.ascentsream.tests.kop.common.KafkaClientUtils.getKafkaConsumer
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Data;
@@ -34,18 +35,19 @@ public class ConsumerTask {
     private final AtomicInteger consumedCount;
 
     public ConsumerTask(String bootstrapServers,
-                        String topic,
+                        Set<String> topic,
                         String group,
                         int consumerNum,
                         int msgTotalNum,
                         AtomicInteger consumedCount,
-                        BlockingQueue<String> receiveQueue) {
+                        BlockingQueue<String> receiveQueue,
+                        boolean isTransaction) {
         this.msgTotalNum = msgTotalNum;
         this.consumedCount = consumedCount;
         this.receiveQueue = receiveQueue;
         for (int i = 0; i < consumerNum; i++) {
-            KafkaConsumer<String, Integer> consumer = getKafkaConsumer(bootstrapServers, group);
-            consumer.subscribe(Collections.singleton(topic));
+            KafkaConsumer<String, Integer> consumer = getKafkaConsumer(bootstrapServers, group, isTransaction);
+            consumer.subscribe(topic);
             consumers.add(consumer);
         }
     }

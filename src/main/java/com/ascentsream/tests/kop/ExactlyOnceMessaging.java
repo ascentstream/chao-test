@@ -20,13 +20,14 @@ import com.ascentsream.tests.kop.common.DataUtil;
 import com.ascentsream.tests.kop.common.KafkaClientUtils;
 import com.ascentsream.tests.kop.common.PulsarClientUtils;
 import com.ascentsream.tests.kop.task.ConsumerTask;
-import com.ascentsream.tests.kop.task.ProducerTask;
+import com.ascentsream.tests.kop.task.ProducerTransactionTask;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -41,58 +42,66 @@ import org.apache.pulsar.common.policies.data.RetentionPolicies;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AtLeastOnceMessaging {
-    private static final Logger log = LoggerFactory.getLogger(AtLeastOnceMessaging.class);
+public class ExactlyOnceMessaging {
+    private static final Logger log = LoggerFactory.getLogger(ExactlyOnceMessaging.class);
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         long startTime = System.currentTimeMillis();
-        String originMsgFile = DATA_ROOT_PATH + "/chao_test/origin/" + "messaging-key.csv";
-        String consumerMsgFile = DATA_ROOT_PATH+ "/chao_test/at-least-once/consumer/" + "revive-messaging.csv";
-        String producerOffsetFile = DATA_ROOT_PATH + "/chao_test/at-least-once/producer/" + "offset.csv";
+        String originMsgFilePrefix = DATA_ROOT_PATH + "/chao_test/origin/";
+        String consumerMsgFile = DATA_ROOT_PATH+ "/chao_test/exactly-once/consumer/" + "revive-messaging.csv";
+        String producerOffsetFile = DATA_ROOT_PATH + "/chao_test/exactly-once/producer/" + "offset.csv";
         int msgCount = Integer.parseInt(System.getProperty("send.msg.count", "1000"));
         int partitionNum = Integer.parseInt(System.getProperty("topic.partition", "10"));
         String bootstrapServers = System.getProperty("kafka.bootstrap.servers", "127.0.0.1:9092");
         String pulsarWebUrl = System.getProperty("pulsar.web.url", "http://pulsar-asp-proxy-headless:8080");
-        String topic = System.getProperty("topic", "at-least-once");
+        String topicStr = System.getProperty("topic", "transaction-1,transaction-2");
         String group = System.getProperty("kafka.group.id", "group-1");
         long maxWaitingTime = Long.parseLong(System.getProperty("max.waiting.time", String.valueOf(10 * 60 )));
 
-        BlockingQueue<String> receiveQueue = new LinkedBlockingQueue<>(msgCount * 2);
-        BlockingQueue<String> sendQueue = new LinkedBlockingQueue<>(msgCount * 2);
-        DataUtil.createTestData(originMsgFile, "key",  partitionNum, msgCount);
-        List<String> producerMessages = DataUtil.readToListFromFile(originMsgFile, true);
+        Map<String, List<String>> producerMessages = new HashMap<>();
         AdminClient kafkaAdmin = KafkaClientUtils.createKafkaAdmin(bootstrapServers);
-
-        if (kafkaAdmin.listTopics().names().get().contains(topic)) {
-            kafkaAdmin.deleteTopics(Collections.singleton(topic)).all().get();
-            Thread.sleep(3000);
-        }
-        NewTopic newTopic = new NewTopic(topic, partitionNum, (short) 2);
-        Map<String, String> topicConfig = new HashMap<>();
-        topicConfig.put(TopicConfig.RETENTION_MS_CONFIG, String.valueOf(10 * 60 * 1000L));
-        newTopic.configs(topicConfig);
+        String[] topics = topicStr.split(",");
+        BlockingQueue<String> receiveQueue = new LinkedBlockingQueue<>(msgCount * topics.length * 2);
+        BlockingQueue<String> sendQueue = new LinkedBlockingQueue<>(msgCount * topics.length * 2);
         PulsarAdmin pulsarAdmin = PulsarClientUtils.createPulsarAdmin(pulsarWebUrl);
-//        kafkaAdmin.createTopics(
-//                Collections.singleton(new NewTopic(topic, partitionNum, (short) 2))).all().get();
-        try {
-            pulsarAdmin.topics().createPartitionedTopic(topic, partitionNum);
-            pulsarAdmin.topicPolicies().setRetention(topic, new RetentionPolicies(-1, -1));
-        } catch (Exception e) {
-            log.error("createPartitionedTopic error : ", e);
+        int startValue =0 ;
+        for (int i = 0; i < topics.length; i++) {
+            String topic = topics[i];
+            if (kafkaAdmin.listTopics().names().get().contains(topic)) {
+                kafkaAdmin.deleteTopics(Collections.singleton(topic)).all().get();
+                Thread.sleep(3000);
+            }
+            NewTopic newTopic = new NewTopic(topic, partitionNum, (short) 2);
+            Map<String, String> topicConfig = new HashMap<>();
+            topicConfig.put(TopicConfig.RETENTION_MS_CONFIG, String.valueOf(10 * 60 * 1000L));
+            newTopic.configs(topicConfig);
+            try {
+                pulsarAdmin.topics().createPartitionedTopic(topic, partitionNum);
+                pulsarAdmin.topicPolicies().setRetention(topic, new RetentionPolicies(-1, -1));
+            } catch (Exception e) {
+                log.error("createPartitionedTopic error : ", e);
+            }
+            String originMsgFile = originMsgFilePrefix + "messaging-key-" + i + ".csv";
+            DataUtil.createTestData(originMsgFile, "transaction" + i, partitionNum, msgCount, startValue);
+            producerMessages.put(topic, DataUtil.readToListFromFile(originMsgFile, true));
+            startValue = msgCount;
         }
-
+        int msgTotalNum = 0;
+        for (String topic : topics ) {
+            msgTotalNum += producerMessages.get(topic).size();
+        }
         AtomicInteger sendCount = new AtomicInteger();
         AtomicInteger consumedCount = new AtomicInteger();
-        ConsumerTask consumerTask = new ConsumerTask(bootstrapServers, Collections.singleton(topic), group,
-                partitionNum, producerMessages.size(), consumedCount, receiveQueue, false);
-        KafkaProducer<String, Integer> producer = getKafkaProducer(bootstrapServers);
-        ProducerTask producerTask = new ProducerTask(producer, topic, producerMessages, producerOffsetFile,
-                sendCount, sendQueue);
+        ConsumerTask consumerTask = new ConsumerTask(bootstrapServers,
+                new HashSet<>(Arrays.asList(topics)), group, partitionNum, msgTotalNum, consumedCount, receiveQueue,
+                true);
+        KafkaProducer<String, Integer> producer = getKafkaProducer(bootstrapServers, "id-" + System.currentTimeMillis());
+        ProducerTransactionTask producerTask = new ProducerTransactionTask(producer, topics, producerMessages,
+                producerOffsetFile, sendCount, sendQueue);
         Thread.sleep(5000);
         producerTask.start();
         consumerTask.start();
         Thread.sleep(5000);
-
         ConsumerGroupsCli consumerGroupsCli = new ConsumerGroupsCli(kafkaAdmin);
         while (true) {
             long waitingTime = (System.currentTimeMillis() - startTime);
@@ -106,7 +115,7 @@ public class AtLeastOnceMessaging {
             try {
                 AtomicLong lagCount = new AtomicLong();
                 KafkaClientUtils.printGroupLag(consumerGroupsCli, group, lagCount);
-                if (lagCount.get() == 0L && consumedCount.get() >= producerMessages.size() && producerTask.isDone()) {
+                if (lagCount.get() == 0L && consumedCount.get() >= msgTotalNum && producerTask.isDone()) {
                     Thread.sleep(10000);
                     break;
                 }
@@ -118,27 +127,23 @@ public class AtLeastOnceMessaging {
         log.info("group[{}] received msg count {} ", group, consumedCount.get());
 
         DataUtil.writeQueueToFile(receiveQueue, consumerMsgFile, "partition,offset,key,value,topic");
-        log.info("\n*************At least once test end *************\n");
+
+        log.info("\n*************exactly once test end *************\n");
         log.info("*************results analysis*************");
-        log.info("number of original messages : {}", DataUtil.getTotalLines(originMsgFile));
+        log.info("number of original messages : {}", msgTotalNum);
         log.info("number of successfully sent messages : {}", DataUtil.getTotalLines(producerOffsetFile));
         log.info("number of successful consumption : {}", DataUtil.getTotalLines(consumerMsgFile));
 
         boolean checkProduceSuc = DataUtil.checkSendOffsetIncrement(producerOffsetFile);
         log.info("check whether the sent offset is increasing : {}" , checkProduceSuc);
-
-        boolean checkSuc = DataUtil.checkDataNotLoss(originMsgFile, producerOffsetFile, consumerMsgFile);
-        Map<Integer, Long> consumerLagOffsets = new TreeMap<>();
-        AtomicLong offsetCount = new AtomicLong();
-        AtomicLong lagCount = new AtomicLong();
+        boolean checkSuc = DataUtil.checkExactlyConsumer(producerMessages, producerOffsetFile, consumerMsgFile);
         log.info("chao test result : {}.", checkSuc);
         consumerTask.close();
         try {
-            KafkaClientUtils.printGroupLag(consumerGroupsCli, group, lagCount, consumerLagOffsets, offsetCount);
-            log.info("offsets by admin : all offset {} , partitions {}, lag {}", offsetCount.get(), consumerLagOffsets,
-                    lagCount);
-            PulsarClientUtils.printInternalStats(pulsarAdmin, topic);
-            kafkaAdmin.deleteTopics(Collections.singleton(topic)).all();
+            for (String topic : topics ) {
+                PulsarClientUtils.printInternalStats(pulsarAdmin, topic);
+                kafkaAdmin.deleteTopics(Collections.singleton(topic)).all();
+            }
             kafkaAdmin.close();
             pulsarAdmin.close();
         } catch (Exception e) {

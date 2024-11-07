@@ -47,7 +47,12 @@ public class DataUtil {
      * @param msgCount the total number of messages.
      *
      */
-    public static void createTestData(String fileName, int keyNum, int msgCount) throws IOException {
+    public static void createTestData(String fileName, String keyPrefix, int keyNum, int msgCount) throws IOException {
+        createTestData(fileName, keyPrefix, keyNum, msgCount, 0);
+    }
+
+    public static void createTestData(String fileName, String keyPrefix, int keyNum, int msgCount, int startValue)
+            throws IOException {
         Path pathToFile = Paths.get(fileName);
         if (!Files.exists(pathToFile)) {
             Files.createDirectories(pathToFile.getParent());
@@ -60,8 +65,8 @@ public class DataUtil {
             if (keyNum <= 0) {
                 throw new RuntimeException( "keyNum must > 0!");
             }
-            key = "key_" + (i % (keyNum * 3));
-            writer.write(key + "," + String.valueOf(i + 1));
+            key = keyPrefix + "_" + (i % (keyNum * 3));
+            writer.write(key + "," + String.valueOf(startValue + i + 1));
             writer.newLine();
         }
         writer.flush();
@@ -181,6 +186,52 @@ public class DataUtil {
     }
 
     /**
+     * check Exactly Consumer.
+     *
+     * @param producerMessages
+     *
+     * @param producerOffsetFile [partition, offset]
+     *      0,1
+     *      0,2
+     * @param consumerMsgFile [partition, offset, key , value]
+     *      0,1,key_8,999
+     *      0,2,key_9,1000
+     * @return boolean
+     *
+     */
+    public static boolean checkExactlyConsumer(Map<String, List<String>> producerMessages, String producerOffsetFile,
+                                               String consumerMsgFile) throws IOException {
+
+        List<String> originMessages = new ArrayList<>();
+        producerMessages.values().forEach(producerMessage -> originMessages.addAll(producerMessage));
+        List<String> consumerMessages = readToListFromFile(consumerMsgFile, true);
+
+        List<Integer> producerMsgs = new ArrayList<>();
+        List<Integer> consumerMsgs = new ArrayList<>();
+
+
+        originMessages.forEach(str -> producerMsgs.add(Integer.valueOf(str.split(",")[1])));
+        consumerMessages.forEach(str -> {
+            String[] array = str.split(",");
+            int value = Integer.parseInt(array[3]);
+            if (consumerMsgs.contains(value)) {
+                log.warn("Repeating messages {}", str);
+            }
+            consumerMsgs.add(value);
+
+        });
+
+        boolean ret = producerMsgs.size() == originMessages.size() && consumerMsgs.containsAll(producerMsgs)
+                && producerMsgs.containsAll(consumerMsgs);
+        log.info("number of original data : {}", producerMsgs.size());
+        producerMsgs.removeAll(consumerMsgs);
+        log.info("number of receive data : {}", consumerMsgs.size());
+        log.info("number of loss data num: {}", producerMsgs.size());
+        log.info("number of loss data : {}", producerMsgs);
+        return ret;
+    }
+
+    /**
      * check producer send offset increment .
      *
      * @param producerOffsetFile .
@@ -193,18 +244,20 @@ public class DataUtil {
         for (String offsetStr : producerOffsets) {
             String[] arrays = offsetStr.split(",");
             String partition = arrays[0];
-            int value = Integer.valueOf(arrays[1]);
-            if (!offsets.containsKey(partition)) {
-                offsets.put(partition, new PriorityQueue<>(Comparator.reverseOrder()));
-                offsets.get(partition).add(value);
+            int offset = Integer.valueOf(arrays[1]);
+            String topic = arrays[3];
+            String key = topic + "-" + partition;
+            if (!offsets.containsKey(key)) {
+                offsets.put(key, new PriorityQueue<>(Comparator.reverseOrder()));
+                offsets.get(key).add(offset);
             } else {
-                int max = offsets.get(partition).peek();
-                if (value <= max) {
-                    log.info("producerOffsetFile {} partition {} not increment, current {}, pre {}",
-                            producerOffsetFile, partition, value, max);
+                int max = offsets.get(key).peek();
+                if (offset <= max) {
+                    log.info("producerOffsetFile {} topic {} partition {} not increment, current {}, pre {}",
+                            producerOffsetFile, topic, partition, offset, max);
                     return false;
                 } else {
-                    offsets.get(partition).add(value);
+                    offsets.get(key).add(offset);
                 }
             }
         }
@@ -212,7 +265,7 @@ public class DataUtil {
     }
 
     /**
-     * check producer send offset increment .
+     * check producer send offset sequence .
      *
      * @param producerOffsetFile .
      * @return boolean
@@ -224,18 +277,20 @@ public class DataUtil {
         for (String offsetStr : producerOffsets) {
             String[] arrays = offsetStr.split(",");
             String partition = arrays[0];
-            int value = Integer.valueOf(arrays[1]);
-            if (!offsets.containsKey(partition)) {
-                offsets.put(partition, new PriorityQueue<>(Comparator.reverseOrder()));
-                offsets.get(partition).add(value);
+            int offset = Integer.valueOf(arrays[1]);
+            String topic = arrays[3];
+            String key = topic + "-" + partition;
+            if (!offsets.containsKey(key)) {
+                offsets.put(key, new PriorityQueue<>(Comparator.reverseOrder()));
+                offsets.get(key).add(offset);
             } else {
-                int max = offsets.get(partition).peek();
-                if (value != max + 1) {
-                    log.info("producerOffsetFile {} partition {} not sequence, current {}, pre {}",
-                            producerOffsetFile, partition, value, max);
+                int max = offsets.get(key).peek();
+                if (offset != max + 1) {
+                    log.info("producerOffsetFile {} topic {} partition {} not sequence, current {}, pre {}",
+                            producerOffsetFile, topic, partition, offset, max);
                     return false;
                 } else {
-                    offsets.get(partition).add(value);
+                    offsets.get(key).add(offset);
                 }
             }
         }

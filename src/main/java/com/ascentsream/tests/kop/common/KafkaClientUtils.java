@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -40,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class KafkaClientUtils {
-    private static final Logger log = LoggerFactory.getLogger(AtLeastOnceMessaging.class);
+    private static final Logger log = LoggerFactory.getLogger(KafkaClientUtils.class);
 
     private static KafkaConsumer<String, Integer> createKafkaConsumerUntilSuc(Properties props) {
         while (true) {
@@ -63,6 +64,11 @@ public final class KafkaClientUtils {
     }
 
     public static KafkaProducer<String, Integer> getKafkaProducer(final String bootstrapServers) {
+        return getKafkaProducer(bootstrapServers, null);
+    }
+
+    public static KafkaProducer<String, Integer> getKafkaProducer(final String bootstrapServers,
+                                                                  String transactionalId) {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -78,10 +84,17 @@ public final class KafkaClientUtils {
         props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
         props.put(ProducerConfig.METADATA_MAX_AGE_CONFIG, 10 * 60 * 1000);
         props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 10 * 60 * 1000);
+        if (!StringUtils.isEmpty(transactionalId)) {
+            props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionalId);
+            props.put(ProducerConfig.TRANSACTION_TIMEOUT_CONFIG, 1000 * 10);
+            props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 1000 * 5);
+        }
         return createKafkaProducerUntilSuc(props);
     }
 
-    public static KafkaConsumer<String, Integer> getKafkaConsumer(final String bootstrapServers, String group) {
+
+    public static KafkaConsumer<String, Integer> getKafkaConsumer(final String bootstrapServers, String group,
+                                                                  boolean isTransaction) {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -90,6 +103,9 @@ public final class KafkaClientUtils {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, group);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, 1000);
+        if (isTransaction) {
+            props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
+        }
         return createKafkaConsumerUntilSuc(props);
     }
 
