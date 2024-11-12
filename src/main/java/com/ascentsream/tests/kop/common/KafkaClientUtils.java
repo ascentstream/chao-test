@@ -13,7 +13,6 @@
  */
 package com.ascentsream.tests.kop.common;
 
-import com.ascentsream.tests.kop.AtLeastOnceMessaging;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +87,7 @@ public final class KafkaClientUtils {
             props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionalId);
             props.put(ProducerConfig.TRANSACTION_TIMEOUT_CONFIG, 1000 * 10);
             props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 1000 * 5);
+            props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 20 * 1000);
         }
         return createKafkaProducerUntilSuc(props);
     }

@@ -45,7 +45,7 @@
     </RollingFile>
   </Appenders>
   <Loggers>
-    <Logger name="org.apache.kafka" level="info" additivity="false">
+    <Logger name="org.apache.kafka" level="debug" additivity="false">
       <AppenderRef ref="KafkaDailyRollingFile"/>
     </Logger>
     <Logger name="org.apache.pulsar" level="info" additivity="false">

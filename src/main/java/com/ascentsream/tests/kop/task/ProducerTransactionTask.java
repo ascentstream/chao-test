@@ -1,7 +1,9 @@
 package com.ascentsream.tests.kop.task;
 
+import static com.ascentsream.tests.kop.common.KafkaClientUtils.getKafkaProducer;
 import com.ascentsream.tests.kop.common.DataUtil;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +16,7 @@ import lombok.Data;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.errors.ProducerFencedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +24,8 @@ import org.slf4j.LoggerFactory;
 public class ProducerTransactionTask {
     private static final Logger log = LoggerFactory.getLogger(ProducerTransactionTask.class);
     private KafkaProducer<String, Integer> producer;
+    private String bootstrapServers;
+    private String transactionalId;
     private final Map<String, List<String>> producerMessages;
     private final String[] topics;
     private final BlockingQueue<String> sendQueue;
@@ -28,7 +33,7 @@ public class ProducerTransactionTask {
     private final String producerOffsetFile;
     private volatile boolean isDone = false;
 
-    public ProducerTransactionTask(KafkaProducer<String, Integer> producer, String[] topics,
+    public ProducerTransactionTask(String bootstrapServers, String transactionalId, String[] topics,
                                    Map<String, List<String>> producerMessages,
                                    String producerOffsetFile,
                                    AtomicInteger sendCount,
@@ -38,7 +43,9 @@ public class ProducerTransactionTask {
         this.sendCount = sendCount;
         this.sendQueue = sendQueue;
         this.topics = topics;
-        this.producer = producer;
+        this.producer = getKafkaProducer(bootstrapServers, transactionalId);
+        this.bootstrapServers = bootstrapServers;
+        this.transactionalId = transactionalId;
     }
 
     public void start() {
@@ -82,21 +89,46 @@ public class ProducerTransactionTask {
                                             + values.get(metadata.topic()) + "," + metadata.topic());
                         });
                     } catch (Exception e) {
-                        try {
-                            producer.abortTransaction();
-                        } catch (Exception ex) {
-                            log.error("ProducerFencedException, ", ex);
+                        log.error("error, ", e);
+                        if (isDone) {
+                            break;
+                        }
+                        if (e instanceof IllegalStateException) {
+                            try {
+                                if (e.getMessage().contains("`commitTransaction` timed out and must be retried")) {
+                                    producer.commitTransaction();
+                                } else {
+                                    producer.abortTransaction();
+                                }
+                            } catch (Exception ex) {
+                                log.error("IllegalStateException error, ", ex);
+                            }
+                        } else if (e instanceof ProducerFencedException) {
+                            while (true) {
+                                try {
+                                    producer.close(Duration.ofMillis(30000));
+                                    producer = getKafkaProducer(bootstrapServers, transactionalId);
+                                    producer.initTransactions();
+                                    log.info("recreate producer success");
+                                    break;
+                                } catch (Exception ex) {
+                                    log.error("recreate producer error,", ex);
+                                }
+                            }
+
+                        } else {
+                            try {
+                                producer.abortTransaction();
+                            } catch (Exception ex) {
+                                log.error("abortTransaction error, ", ex);
+                            }
                         }
                         --i;
-                        log.error("abort transaction : ", e);
                         try {
                             Thread.sleep(1000);
                         } catch (InterruptedException ex) {
                             throw new RuntimeException(ex);
                         }
-                    }
-                    if (isDone) {
-                        break;
                     }
                 }
             }
