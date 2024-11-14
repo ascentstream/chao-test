@@ -62,14 +62,15 @@ jobs:
             name: "alo-chaos-network-bandwidth",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-bandwidth.yaml"
           },
-          {
-            name: "alo-chaos-io-delay",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-io-delay.yaml"
-          },
-          {
-            name: "alo-chaos-io-fault",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-io-fault.yaml"
-          },
+          #          chaos-io is not effective, comment it out temporarily
+          #          {
+          #            name: "alo-chaos-io-delay",
+          #            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-io-delay.yaml"
+          #          },
+          #          {
+          #            name: "alo-chaos-io-fault",
+          #            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-io-fault.yaml"
+          #          },
           {
             name: "alo-chaos-stress-cpu",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress-cpu.yaml"

@@ -14,7 +14,6 @@
 package com.ascentsream.tests.kop;
 
 import static com.ascentsream.tests.kop.common.Constants.DATA_ROOT_PATH;
-import static com.ascentsream.tests.kop.common.KafkaClientUtils.getKafkaProducer;
 import com.ascentsream.tests.kop.common.ConsumerGroupsCli;
 import com.ascentsream.tests.kop.common.DataUtil;
 import com.ascentsream.tests.kop.common.KafkaClientUtils;
@@ -22,6 +21,7 @@ import com.ascentsream.tests.kop.common.PulsarClientUtils;
 import com.ascentsream.tests.kop.task.ConsumerTask;
 import com.ascentsream.tests.kop.task.ProducerTransactionTask;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,7 +35,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.common.policies.data.RetentionPolicies;
@@ -95,9 +94,9 @@ public class ExactlyOnceMessaging {
         ConsumerTask consumerTask = new ConsumerTask(bootstrapServers,
                 new HashSet<>(Arrays.asList(topics)), group, partitionNum, msgTotalNum, consumedCount, receiveQueue,
                 true);
-        KafkaProducer<String, Integer> producer = getKafkaProducer(bootstrapServers, "id-" + System.currentTimeMillis());
-        ProducerTransactionTask producerTask = new ProducerTransactionTask(producer, topics, producerMessages,
-                producerOffsetFile, sendCount, sendQueue);
+        ProducerTransactionTask producerTask = new ProducerTransactionTask(bootstrapServers,
+                "id-" + System.currentTimeMillis(), topics, producerMessages, producerOffsetFile,
+                sendCount, sendQueue);
         Thread.sleep(5000);
         producerTask.start();
         consumerTask.start();
@@ -138,16 +137,17 @@ public class ExactlyOnceMessaging {
         log.info("check whether the sent offset is increasing : {}" , checkProduceSuc);
         boolean checkSuc = DataUtil.checkExactlyConsumer(producerMessages, producerOffsetFile, consumerMsgFile);
         log.info("chao test result : {}.", checkSuc);
-        consumerTask.close();
         try {
+            consumerTask.close();
             for (String topic : topics ) {
                 PulsarClientUtils.printInternalStats(pulsarAdmin, topic);
                 kafkaAdmin.deleteTopics(Collections.singleton(topic)).all();
             }
-            kafkaAdmin.close();
+            kafkaAdmin.close(Duration.ofMillis(10000));
             pulsarAdmin.close();
         } catch (Exception e) {
             log.error("clean resource error, ", e);
+            System.exit(1);
         }
     }
 }

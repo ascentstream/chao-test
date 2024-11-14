@@ -22,6 +22,7 @@ import com.ascentsream.tests.kop.common.PulsarClientUtils;
 import com.ascentsream.tests.kop.task.ConsumerTask;
 import com.ascentsream.tests.kop.task.ProducerTask;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -131,17 +132,19 @@ public class IdempotenceMessaging {
         AtomicLong lagCount = new AtomicLong();
         log.info("check whether the sent offset is sequence : {}" , checkProduceSuc);
         log.info("chao test result : {}.", checkSuc);
-        consumerTask.close();
+
         try {
+            consumerTask.close();
             KafkaClientUtils.printGroupLag(consumerGroupsCli, group, lagCount, consumerLagOffsets, offsetCount);
             log.info("offsets by admin : all offset {} , partitions {}, lag {}", offsetCount.get(), consumerLagOffsets,
                     lagCount);
             PulsarClientUtils.printInternalStats(pulsarAdmin, topic);
             kafkaAdmin.deleteTopics(Collections.singleton(topic)).all();
-            kafkaAdmin.close();
+            kafkaAdmin.close(Duration.ofMillis(10000));
             pulsarAdmin.close();
         } catch (Exception e) {
             log.error("clean resource error, ", e);
+            System.exit(1);
         }
     }
 }
