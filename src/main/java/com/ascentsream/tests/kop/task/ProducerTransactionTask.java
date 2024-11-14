@@ -16,6 +16,7 @@ import lombok.Data;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.errors.InvalidPidMappingException;
 import org.apache.kafka.common.errors.ProducerFencedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +104,7 @@ public class ProducerTransactionTask {
                             } catch (Exception ex) {
                                 log.error("IllegalStateException error, ", ex);
                             }
-                        } else if (e instanceof ProducerFencedException) {
+                        } else if (e instanceof ProducerFencedException || e instanceof InvalidPidMappingException) {
                             while (true) {
                                 try {
                                     producer.close(Duration.ofMillis(30000));

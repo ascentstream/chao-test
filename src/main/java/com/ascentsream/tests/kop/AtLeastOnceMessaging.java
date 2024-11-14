@@ -22,6 +22,7 @@ import com.ascentsream.tests.kop.common.PulsarClientUtils;
 import com.ascentsream.tests.kop.task.ConsumerTask;
 import com.ascentsream.tests.kop.task.ProducerTask;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -139,10 +140,11 @@ public class AtLeastOnceMessaging {
                     lagCount);
             PulsarClientUtils.printInternalStats(pulsarAdmin, topic);
             kafkaAdmin.deleteTopics(Collections.singleton(topic)).all();
-            kafkaAdmin.close();
+            kafkaAdmin.close(Duration.ofMillis(10000));
             pulsarAdmin.close();
         } catch (Exception e) {
             log.error("clean resource error, ", e);
+            System.exit(1);
         }
     }
 }
