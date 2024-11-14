@@ -136,8 +136,8 @@ public class ExactlyOnceMessaging {
         log.info("check whether the sent offset is increasing : {}" , checkProduceSuc);
         boolean checkSuc = DataUtil.checkExactlyConsumer(producerMessages, producerOffsetFile, consumerMsgFile);
         log.info("chao test result : {}.", checkSuc);
-        consumerTask.close();
         try {
+            consumerTask.close();
             for (String topic : topics ) {
                 PulsarClientUtils.printInternalStats(pulsarAdmin, topic);
                 kafkaAdmin.deleteTopics(Collections.singleton(topic)).all();

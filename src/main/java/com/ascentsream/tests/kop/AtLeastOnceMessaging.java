@@ -132,8 +132,8 @@ public class AtLeastOnceMessaging {
         AtomicLong offsetCount = new AtomicLong();
         AtomicLong lagCount = new AtomicLong();
         log.info("chao test result : {}.", checkSuc);
-        consumerTask.close();
         try {
+            consumerTask.close();
             KafkaClientUtils.printGroupLag(consumerGroupsCli, group, lagCount, consumerLagOffsets, offsetCount);
             log.info("offsets by admin : all offset {} , partitions {}, lag {}", offsetCount.get(), consumerLagOffsets,
                     lagCount);
