@@ -94,17 +94,8 @@ public class ProducerTransactionTask {
                         if (isDone) {
                             break;
                         }
-                        if (e instanceof IllegalStateException) {
-                            try {
-                                if (e.getMessage().contains("`commitTransaction` timed out and must be retried")) {
-                                    producer.commitTransaction();
-                                } else {
-                                    producer.abortTransaction();
-                                }
-                            } catch (Exception ex) {
-                                log.error("IllegalStateException error, ", ex);
-                            }
-                        } else if (e instanceof ProducerFencedException || e instanceof InvalidPidMappingException) {
+                        if (e instanceof ProducerFencedException || e instanceof InvalidPidMappingException ||
+                                e.getMessage().contains("Invalid transition attempted from state")) {
                             while (true) {
                                 try {
                                     producer.close(Duration.ofMillis(30000));
@@ -116,7 +107,16 @@ public class ProducerTransactionTask {
                                     log.error("recreate producer error,", ex);
                                 }
                             }
-
+                        } else if (e instanceof IllegalStateException) {
+                            try {
+                                if (e.getMessage().contains("`commitTransaction` timed out and must be retried")) {
+                                    producer.commitTransaction();
+                                } else {
+                                    producer.abortTransaction();
+                                }
+                            } catch (Exception ex) {
+                                log.error("IllegalStateException error, ", ex);
+                            }
                         } else {
                             try {
                                 producer.abortTransaction();
