@@ -15,10 +15,10 @@
       <PatternLayout pattern="[%d][%t][%p][%c:%L] %m%n"/>
       <Policies>
         <TimeBasedTriggeringPolicy interval="1"/>
-        <SizeBasedTriggeringPolicy size="10 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="20">
-        <Delete basePath="${log_path}/" maxDepth="2">
+        <Delete basePath="${log_path}/" maxDepth="20">
           <IfFileName glob="*">
             <IfLastModified age="7d">
             </IfLastModified>

@@ -95,8 +95,12 @@ public class ProducerTransactionTask {
                             break;
                         }
                         if (e instanceof ProducerFencedException || e instanceof InvalidPidMappingException ||
-                                e.getMessage().contains("Invalid transition attempted from state")) {
+                                e.getMessage().contains("Invalid transition attempted from state") ||
+                                e.getMessage().contains("method because we are in an error state")) {
                             while (true) {
+                                if (isDone) {
+                                    break;
+                                }
                                 try {
                                     producer.close(Duration.ofMillis(30000));
                                     producer = getKafkaProducer(bootstrapServers, transactionalId);
