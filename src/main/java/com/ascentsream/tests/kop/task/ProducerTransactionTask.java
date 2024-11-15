@@ -18,6 +18,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.InvalidPidMappingException;
 import org.apache.kafka.common.errors.ProducerFencedException;
+import org.apache.kafka.common.errors.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +83,19 @@ public class ProducerTransactionTask {
                         for (Future<RecordMetadata> future : futures) {
                             recordMetadatas.add(future.get(10, TimeUnit.SECONDS));
                         }
-                        producer.commitTransaction();
+                        int retry = 0;
+                        while (true) {
+                            if (isDone) {
+                                break;
+                            }
+                            try {
+                                producer.commitTransaction();
+                                retry ++;
+                                break;
+                            } catch (TimeoutException ex) {
+                                log.warn("commitTransaction timeOut, will retry {}, ", retry, ex);
+                            }
+                        }
                         recordMetadatas.forEach(metadata -> {
                             sendCount.incrementAndGet();
                             sendQueue.add(
@@ -94,9 +107,7 @@ public class ProducerTransactionTask {
                         if (isDone) {
                             break;
                         }
-                        if (e instanceof ProducerFencedException || e instanceof InvalidPidMappingException ||
-                                e.getMessage().contains("Invalid transition attempted from state") ||
-                                e.getMessage().contains("method because we are in an error state")) {
+                        if (e instanceof ProducerFencedException || e instanceof InvalidPidMappingException) {
                             while (true) {
                                 if (isDone) {
                                     break;
@@ -111,19 +122,21 @@ public class ProducerTransactionTask {
                                     log.error("recreate producer error,", ex);
                                 }
                             }
-                        } else if (e instanceof IllegalStateException) {
-                            try {
-                                if (e.getMessage().contains("`commitTransaction` timed out and must be retried")) {
-                                    producer.commitTransaction();
-                                } else {
-                                    producer.abortTransaction();
-                                }
-                            } catch (Exception ex) {
-                                log.error("IllegalStateException error, ", ex);
-                            }
                         } else {
                             try {
-                                producer.abortTransaction();
+                                int retry = 0;
+                                while (true) {
+                                    if (isDone) {
+                                        break;
+                                    }
+                                    try {
+                                        producer.abortTransaction();
+                                        retry ++;
+                                        break;
+                                    } catch (TimeoutException ex) {
+                                        log.warn("abortTransaction timeOut, will retry {}, ", retry, ex);
+                                    }
+                                }
                             } catch (Exception ex) {
                                 log.error("abortTransaction error, ", ex);
                             }
