@@ -89,8 +89,8 @@ public class ProducerTransactionTask {
                                 break;
                             }
                             try {
-                                producer.commitTransaction();
                                 retry ++;
+                                producer.commitTransaction();
                                 break;
                             } catch (TimeoutException ex) {
                                 log.warn("commitTransaction timeOut, will retry {}, ", retry, ex);
@@ -130,8 +130,8 @@ public class ProducerTransactionTask {
                                         break;
                                     }
                                     try {
-                                        producer.abortTransaction();
                                         retry ++;
+                                        producer.abortTransaction();
                                         break;
                                     } catch (TimeoutException ex) {
                                         log.warn("abortTransaction timeOut, will retry {}, ", retry, ex);

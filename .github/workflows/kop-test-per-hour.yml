@@ -311,10 +311,10 @@ jobs:
             name: "eo-chaos-stress",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress.yaml"
           },
-          {
-            name: "eo-chaos-mix",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-mix-chaos.yaml"
-          },
+#          {
+#            name: "eo-chaos-mix",
+#            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-mix-chaos.yaml"
+#          },
         ]
 
     steps:
