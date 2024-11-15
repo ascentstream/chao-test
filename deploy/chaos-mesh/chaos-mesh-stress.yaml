@@ -10,7 +10,23 @@ spec:
     - name: entry
       templateType: Serial
       children:
+        - stress-cpu
         - stress-memory
+    - name: stress-cpu
+      deadline: 60s
+      templateType: StressChaos
+      stressChaos:
+        stressors:
+          cpu:
+            workers: 2
+            load: 80
+        mode: fixed-percent
+        value: '60'
+        selector:
+          namespaces:
+            - pulsar-cluster
+          labelSelectors:
+            cluster: pulsar-asp
     - name: stress-memory
       deadline: 60s
       templateType: StressChaos

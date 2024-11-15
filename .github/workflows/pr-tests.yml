@@ -72,12 +72,8 @@ jobs:
           #            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-io-fault.yaml"
           #          },
           {
-            name: "alo-chaos-stress-cpu",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress-cpu.yaml"
-          },
-          {
-            name: "alo-chaos-stress-memory",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress-memory.yaml"
+            name: "alo-chaos-stress",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress.yaml"
           },
           {
             name: "alo-chaos-mix",
@@ -312,12 +308,8 @@ jobs:
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-partition.yaml"
           },
           {
-            name: "eo-chaos-stress-cpu",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress-cpu.yaml"
-          },
-          {
-            name: "eo-chaos-stress-memory",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress-memory.yaml"
+            name: "eo-chaos-stress",
+            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress.yaml"
           },
           {
             name: "eo-chaos-mix",
