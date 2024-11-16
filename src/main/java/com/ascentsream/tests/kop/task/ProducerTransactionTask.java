@@ -17,6 +17,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.InvalidPidMappingException;
+import org.apache.kafka.common.errors.InvalidTxnStateException;
 import org.apache.kafka.common.errors.ProducerFencedException;
 import org.apache.kafka.common.errors.TimeoutException;
 import org.slf4j.Logger;
@@ -107,14 +108,15 @@ public class ProducerTransactionTask {
                         if (isDone) {
                             break;
                         }
-                        if (e instanceof ProducerFencedException || e instanceof InvalidPidMappingException) {
+                        if (e instanceof ProducerFencedException || e instanceof InvalidPidMappingException ||
+                        e.getCause() instanceof InvalidTxnStateException) {
                             while (true) {
                                 if (isDone) {
                                     break;
                                 }
                                 try {
                                     producer.close(Duration.ofMillis(30000));
-                                    producer = getKafkaProducer(bootstrapServers, transactionalId);
+                                    producer = getKafkaProducer(bootstrapServers, String.valueOf(System.nanoTime()));
                                     producer.initTransactions();
                                     log.info("recreate producer success");
                                     break;
