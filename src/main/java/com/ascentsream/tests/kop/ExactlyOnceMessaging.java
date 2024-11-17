@@ -145,6 +145,7 @@ public class ExactlyOnceMessaging {
             }
             kafkaAdmin.close(Duration.ofMillis(10000));
             pulsarAdmin.close();
+            System.exit(0);
         } catch (Exception e) {
             log.error("clean resource error, ", e);
             System.exit(1);

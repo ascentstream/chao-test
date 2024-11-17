@@ -48,20 +48,20 @@ public class ConsumerThread extends Thread {
                     consumerTask.getReceiveQueue().add(record.partition() + "," + record.offset() + "," + record.key()
                             + "," + record.value()  + "," + record.topic());
                 }
-                if (consumerTask.getConsumedCount().get() >= consumerTask.getMsgTotalNum()) {
-                    Map<TopicPartition, Long> partitionLag = getPartitionLag(consumer, consumer.assignment());
-                    if (!records.isEmpty()) {
-                        partitionLag.forEach((topicPartition, lag) -> {
-                            log.info("get group[{}] lag by consumer: topic {}, partition {}, lag {}",
-                                    consumer.groupMetadata().groupId(), topicPartition.topic(),
-                                    topicPartition.partition(), lag);
-                        });
-                    }
-
-                    if (checkPartitionLag(partitionLag)) {
-                        running = false;
-                    }
-                }
+//                if (consumerTask.getConsumedCount().get() >= consumerTask.getMsgTotalNum()) {
+//                    Map<TopicPartition, Long> partitionLag = getPartitionLag(consumer, consumer.assignment());
+//                    if (!records.isEmpty()) {
+//                        partitionLag.forEach((topicPartition, lag) -> {
+//                            log.info("get group[{}] lag by consumer: topic {}, partition {}, lag {}",
+//                                    consumer.groupMetadata().groupId(), topicPartition.topic(),
+//                                    topicPartition.partition(), lag);
+//                        });
+//                    }
+//
+//                    if (checkPartitionLag(partitionLag)) {
+//                        running = false;
+//                    }
+//                }
             } catch (Exception e) {
                 log.error("consumer poll error,", e);
             }
