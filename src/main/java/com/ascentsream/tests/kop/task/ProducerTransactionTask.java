@@ -111,10 +111,6 @@ public class ProducerTransactionTask {
                                     break;
                                 } catch (TimeoutException ex) {
                                     log.warn("abortTransaction timeOut, will retry {}, ", retry, ex);
-                                    if (retry > 3) {
-                                        creatProducer();
-                                        break;
-                                    }
                                 }
                             }
                         } catch (Exception ex) {
