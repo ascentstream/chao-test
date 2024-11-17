@@ -18,6 +18,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.InvalidPidMappingException;
 import org.apache.kafka.common.errors.InvalidTxnStateException;
+import org.apache.kafka.common.errors.OutOfOrderSequenceException;
 import org.apache.kafka.common.errors.ProducerFencedException;
 import org.apache.kafka.common.errors.TimeoutException;
 import org.slf4j.Logger;
@@ -84,65 +85,39 @@ public class ProducerTransactionTask {
                         for (Future<RecordMetadata> future : futures) {
                             recordMetadatas.add(future.get(10, TimeUnit.SECONDS));
                         }
-                        int retry = 0;
-                        while (true) {
-                            if (isDone) {
-                                break;
-                            }
-                            try {
-                                retry ++;
-                                producer.commitTransaction();
-                                break;
-                            } catch (TimeoutException ex) {
-                                log.warn("commitTransaction timeOut, will retry {}, ", retry, ex);
-                            }
-                        }
+                        producer.commitTransaction();
                         recordMetadatas.forEach(metadata -> {
                             sendCount.incrementAndGet();
                             sendQueue.add(
                                     metadata.partition() + "," + metadata.offset() + ","
                                             + values.get(metadata.topic()) + "," + metadata.topic());
                         });
+                    } catch (ProducerFencedException | OutOfOrderSequenceException e) {
+                        creatProducer();
                     } catch (Exception e) {
                         log.error("error, ", e);
                         if (isDone) {
                             break;
                         }
-                        if (e instanceof ProducerFencedException || e instanceof InvalidPidMappingException ||
-                        e.getCause() instanceof InvalidTxnStateException) {
+                        try {
+                            int retry = 0;
                             while (true) {
                                 if (isDone) {
                                     break;
                                 }
                                 try {
-                                    producer.close(Duration.ofMillis(30000));
-                                    producer = getKafkaProducer(bootstrapServers, String.valueOf(System.nanoTime()));
-                                    producer.initTransactions();
-                                    log.info("recreate producer success");
+                                    retry++;
+                                    producer.abortTransaction();
                                     break;
-                                } catch (Exception ex) {
-                                    log.error("recreate producer error,", ex);
+                                } catch (TimeoutException ex) {
+                                    log.warn("abortTransaction timeOut, will retry {}, ", retry, ex);
                                 }
                             }
-                        } else {
-                            try {
-                                int retry = 0;
-                                while (true) {
-                                    if (isDone) {
-                                        break;
-                                    }
-                                    try {
-                                        retry ++;
-                                        producer.abortTransaction();
-                                        break;
-                                    } catch (TimeoutException ex) {
-                                        log.warn("abortTransaction timeOut, will retry {}, ", retry, ex);
-                                    }
-                                }
-                            } catch (Exception ex) {
-                                log.error("abortTransaction error, ", ex);
-                            }
+                        } catch (Exception ex) {
+                            log.error("abortTransaction error, ", ex);
+                            creatProducer();
                         }
+
                         --i;
                         try {
                             Thread.sleep(1000);
@@ -177,5 +152,22 @@ public class ProducerTransactionTask {
                 producer.close();
             }
         }).start();
+    }
+
+    private void creatProducer() {
+        while (true) {
+            if (isDone) {
+                break;
+            }
+            try {
+                producer.close(Duration.ofMillis(30000));
+                producer = getKafkaProducer(bootstrapServers, String.valueOf(System.nanoTime()));
+                producer.initTransactions();
+                log.info("recreate producer success");
+                break;
+            } catch (Exception ex) {
+                log.error("recreate producer error,", ex);
+            }
+        }
     }
 }
