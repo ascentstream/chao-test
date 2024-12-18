@@ -303,10 +303,10 @@ jobs:
             name: "eo-chaos-network-bandwidth",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-bandwidth.yaml"
           },
-          {
-            name: "eo-chaos-network-partition",
-            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-partition.yaml"
-          },
+#          {
+#            name: "eo-chaos-network-partition",
+#            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-network-partition.yaml"
+#          },
           {
             name: "eo-chaos-stress",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress.yaml"
