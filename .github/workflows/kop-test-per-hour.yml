@@ -2,7 +2,7 @@ name: kop test per hour
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */1 * * *'
+    - cron: '0 */3 * * *'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -141,14 +141,18 @@ jobs:
           current_dir=$PWD
           kubectl -n pulsar-cluster logs chao-test > ${current_dir}/artifacts/chao-test/chao-test.log
           ${{ env.REPO_PATH }}/scripts/cp-logs-from-kind.sh  ${current_dir}/artifacts/chao-test
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-2.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
+          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-2.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
+          kubectl -n pulsar-cluster exec pulsar-asp-broker-0 -- jmap -dump:live,format=b,file=/pulsar/heap-pulsar-asp-broker-0.bin 1
+          kubectl cp pulsar-cluster/pulsar-asp-broker-0:/pulsar/heap-pulsar-asp-broker-0.bin ${current_dir}/artifacts/pulsar/heap-pulsar-asp-broker-0.bin
+          kubectl -n pulsar-cluster exec pulsar-asp-broker-1 -- jmap -dump:live,format=b,file=/pulsar/heap-pulsar-asp-broker-1.bin 1
+          kubectl cp pulsar-cluster/pulsar-asp-broker-1:/pulsar/heap-pulsar-asp-broker-1.bin ${current_dir}/artifacts/pulsar/heap-pulsar-asp-broker-1.bin
           zip -r artifacts-${{ matrix.test.name }}.zip artifacts
 
       - uses: actions/upload-artifact@master
@@ -242,14 +246,18 @@ jobs:
           current_dir=$PWD
           kubectl -n pulsar-cluster logs chao-test > ${current_dir}/artifacts/chao-test/chao-test.log
           ${{ env.REPO_PATH }}/scripts/cp-logs-from-kind.sh  ${current_dir}/artifacts/chao-test
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-2.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
+          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-2.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
+          kubectl -n pulsar-cluster exec pulsar-asp-broker-0 -- jmap -dump:live,format=b,file=/pulsar/heap-pulsar-asp-broker-0.bin 1
+          kubectl cp pulsar-cluster/pulsar-asp-broker-0:/pulsar/heap-pulsar-asp-broker-0.bin ${current_dir}/artifacts/pulsar/heap-pulsar-asp-broker-0.bin
+          kubectl -n pulsar-cluster exec pulsar-asp-broker-1 -- jmap -dump:live,format=b,file=/pulsar/heap-pulsar-asp-broker-1.bin 1
+          kubectl cp pulsar-cluster/pulsar-asp-broker-1:/pulsar/heap-pulsar-asp-broker-1.bin ${current_dir}/artifacts/pulsar/heap-pulsar-asp-broker-1.bin
           zip -r artifacts-${{ matrix.test.name }}.zip artifacts
 
       - uses: actions/upload-artifact@master
@@ -376,14 +384,18 @@ jobs:
           current_dir=$PWD
           kubectl -n pulsar-cluster logs chao-test > ${current_dir}/artifacts/chao-test/chao-test.log
           ${{ env.REPO_PATH }}/scripts/cp-logs-from-kind.sh  ${current_dir}/artifacts/chao-test
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-2.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
+          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-2.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-0.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-1.log
+          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
+          kubectl -n pulsar-cluster exec pulsar-asp-broker-0 -- jmap -dump:live,format=b,file=/pulsar/heap-pulsar-asp-broker-0.bin 1
+          kubectl cp pulsar-cluster/pulsar-asp-broker-0:/pulsar/heap-pulsar-asp-broker-0.bin ${current_dir}/artifacts/pulsar/heap-pulsar-asp-broker-0.bin
+          kubectl -n pulsar-cluster exec pulsar-asp-broker-1 -- jmap -dump:live,format=b,file=/pulsar/heap-pulsar-asp-broker-1.bin 1
+          kubectl cp pulsar-cluster/pulsar-asp-broker-1:/pulsar/heap-pulsar-asp-broker-1.bin ${current_dir}/artifacts/pulsar/heap-pulsar-asp-broker-1.bin
           zip -r artifacts-${{ matrix.test.name }}.zip artifacts
 
       - uses: actions/upload-artifact@master
