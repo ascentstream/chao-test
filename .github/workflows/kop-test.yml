@@ -177,7 +177,7 @@ jobs:
     env:
       REPO_PATH: ${{ github.workspace }}
       RELEASE_BRANCH: main
-      AS_PLATFORM_IMAGE_TAG: chao-test-latest
+      AS_PLATFORM_IMAGE_TAG: ${{ github.event.inputs.as-platform-image-tag }}
       REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
       KAFKA_BOOTSTRAP_SERVERS: "pulsar-asp-broker-headless:9092"
@@ -278,7 +278,7 @@ jobs:
       JAVA_VERSION: 17
       JAVA_DISTRIBUTION: temurin
       REPO_PATH: ${{ github.workspace }}
-      AS_PLATFORM_IMAGE_TAG: chao-test-latest
+      AS_PLATFORM_IMAGE_TAG: ${{ github.event.inputs.as-platform-image-tag }}
       REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
       KAFKA_BOOTSTRAP_SERVERS: pulsar-asp-broker-headless:9092
