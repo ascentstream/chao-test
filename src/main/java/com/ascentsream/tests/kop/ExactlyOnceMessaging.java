@@ -140,6 +140,7 @@ public class ExactlyOnceMessaging {
         try {
             consumerTask.close();
             for (String topic : topics ) {
+                log.info("Skip unload/delete topic {}.", topic);
 //                PulsarClientUtils.printInternalStats(pulsarAdmin, topic);
 //                kafkaAdmin.deleteTopics(Collections.singleton(topic)).all();
             }
