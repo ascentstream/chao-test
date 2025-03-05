@@ -131,7 +131,7 @@ images:
   zookeeper:
     repository: ascentstream/as-platform
     tag: "2.10.7.1"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     customTools:
       backup:
         repository: "ascentstream/pulsar-metadata-tool"
@@ -142,15 +142,15 @@ images:
   bookie:
     repository: ascentstream/as-platform
     tag: "2.10.7.1"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   presto:
     repository: ascentstream/as-platform
     tag: "2.10.7.1"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     exporter:
       repository: bitnami/jmx-exporter
       tag: "0.17.0"
-      pullPolicy: IfNotPresent
+      pullPolicy: Always
   # NOTE: allow overriding the presto worker image
   # presto_worker:
   #   repository: ascentstream/as-platform
@@ -159,15 +159,15 @@ images:
   autorecovery:
     repository: ascentstream/as-platform
     tag: "2.10.7.1"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   broker:
     repository: ascentstream/as-platform
     tag: "2.10.7.1"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   proxy:
     repository: ascentstream/as-platform
     tag: "2.10.7.1"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   pulsar_detector:
     repository: ascentstream/pulsar-detector
     tag: "latest"
