@@ -141,7 +141,7 @@ public class ExactlyOnceMessaging {
             consumerTask.close();
             for (String topic : topics ) {
                 PulsarClientUtils.printInternalStats(pulsarAdmin, topic);
-                kafkaAdmin.deleteTopics(Collections.singleton(topic)).all();
+//                kafkaAdmin.deleteTopics(Collections.singleton(topic)).all();
             }
             kafkaAdmin.close(Duration.ofMillis(10000));
             pulsarAdmin.close();
