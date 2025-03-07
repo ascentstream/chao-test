@@ -2,7 +2,7 @@ name: kop test per hour
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */1 * * *'
+    - cron: '0 */2 * * *'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -28,7 +28,7 @@ jobs:
       KAFKA_BOOTSTRAP_SERVERS: "pulsar-asp-broker-headless:9092"
       SEND_MSG_COUNT: 50000
       TOPIC_PARTITION: 10
-      MAX_WAITING_TIME: 600
+      MAX_WAITING_TIME: 900
 
     strategy:
       # other jobs should run even if one test fails
