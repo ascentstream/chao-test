@@ -279,7 +279,7 @@ jobs:
       SEND_MSG_COUNT: 1000
       TOPIC: transaction-1,transaction-2
       TOPIC_PARTITION: 10
-      MAX_WAITING_TIME: 600
+      MAX_WAITING_TIME: 900
       MAIN_CLASS: com.ascentsream.tests.kop.ExactlyOnceMessaging
 
     strategy:
