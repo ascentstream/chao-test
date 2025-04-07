@@ -33,6 +33,7 @@ jobs:
     strategy:
       # other jobs should run even if one test fails
       fail-fast: false
+      max-retry: 3
       matrix:
         test: [
           {
