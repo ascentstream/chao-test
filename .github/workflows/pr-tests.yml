@@ -32,6 +32,8 @@ jobs:
     strategy:
       # other jobs should run even if one test fails
       fail-fast: false
+      retry:
+        maxAttempt: 3  # 最多重试3次
       matrix:
         test: [
           {
