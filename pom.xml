@@ -12,7 +12,7 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <kafka.version>3.4.1</kafka.version>
+    <kafka.version>3.9.1</kafka.version>
     <pulsar.group.id>com.ascentstream.pulsar</pulsar.group.id>
     <pulsar.version>2.10.7.3</pulsar.version>
     <log4j-slf4j.version>2.9.1</log4j-slf4j.version>
