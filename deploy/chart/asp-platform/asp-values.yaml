@@ -1168,9 +1168,15 @@ broker:
         imagePullSecrets:
           - name: "regcred"
         functionRunnerImages:
-          go: "ascentstream/pulsar-functions-runner:2.10.7.1"
-          java: "ascentstream/pulsar-functions-runner:2.10.7.1"
-          python: "ascentstream/pulsar-functions-runner:2.10.7.1"
+          go:
+            repository: "ascentstream/pulsar-functions-runner"
+            tag: "2.10.7.1"
+          java:
+            repository: "ascentstream/pulsar-functions-runner"
+            tag: "2.10.7.1"
+          python:
+            repository: "ascentstream/pulsar-functions-runner"
+            tag: "2.10.7.1"
         sinkEnabled: true
         sourceEnabled: true
         uploadEnabled: true
@@ -1206,9 +1212,15 @@ broker:
         imagePullSecrets:
           - name: "regcred"
         functionRunnerImages:
-          go: "ascentstream/pulsar-functions-runner:2.10.7.1"
-          java: "ascentstream/pulsar-functions-runner:2.10.7.1"
-          python: "ascentstream/pulsar-functions-runner:2.10.7.1"
+          go:
+            repository: "ascentstream/pulsar-functions-runner"
+            tag: "2.10.7.1"
+          java:
+            repository: "ascentstream/pulsar-functions-runner"
+            tag: "2.10.7.1"
+          python:
+            repository: "ascentstream/pulsar-functions-runner"
+            tag: "2.10.7.1"
         sinkEnabled: true
         sourceEnabled: true
         uploadEnabled: true

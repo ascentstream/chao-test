@@ -61,6 +61,10 @@ operator:
     timeoutSeconds: 1
   extraEnv: []
 
+# multicluster is required by asp-operator 2.0.7 templates even when disabled
+multicluster:
+  enabled: false
+
 kubeRbacProxy:
   image:
     repository: "ascentstream/kube-rbac-proxy"
