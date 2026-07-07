@@ -30,7 +30,7 @@ namespaceCreate: false
 operator:
   image:
     repository: "ascentstream/asp-operator"
-    tag: "v0.3.3"
+    tag: "v2.0.7"
     pullPolicy: "IfNotPresent"
   resources:
     limits:

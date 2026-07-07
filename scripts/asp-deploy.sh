@@ -58,7 +58,7 @@ function install()
     kubectl create secret docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=bot@ascentstream.com -n ${ASP_NAMESPACE}
 
     echo "installing asp-operator"
-    helm install ${ASO_RELEASE_NAME} ${RUNNING_DIR}/chart/asp-operator-0.3.3.tgz -n ${ASO_NAMESPACE} --values ${RUNNING_DIR}/chart/aso-values.yaml --create-namespace
+    helm install ${ASO_RELEASE_NAME} ${RUNNING_DIR}/chart/asp-operator-2.0.7.tgz -n ${ASO_NAMESPACE} --values ${RUNNING_DIR}/chart/aso-values.yaml --create-namespace
     kubectl get pod  -n ${ASO_NAMESPACE} 
     echo "installed asp-operator"
 
@@ -69,7 +69,7 @@ function install()
     echo "installed cert-manager"
 
     echo "installing as-plartform"
-    helm install ${ASP_RELEASE_NAME} ${RUNNING_DIR}/chart/asp-0.7.1.tgz --set initialize=true --set namespace=${ASP_NAMESPACE} --create-namespace -n ${ASP_NAMESPACE} --values ${RUNNING_DIR}/chart/asp-values.yaml
+    helm install ${ASP_RELEASE_NAME} ${RUNNING_DIR}/chart/asp-2.0.2.tgz --set initialize=true --set namespace=${ASP_NAMESPACE} --create-namespace -n ${ASP_NAMESPACE} --values ${RUNNING_DIR}/chart/asp-values.yaml
     kubectl get pod  -n ${ASP_NAMESPACE} 
     echo "installed as-plartform"
 
