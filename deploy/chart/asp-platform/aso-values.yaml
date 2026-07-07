@@ -121,10 +121,10 @@ rbac:
 crds:
   install: true
   bookkeeper:
-    create: false
+    create: true
   broker:
-    create: false
+    create: true
   proxy:
-    create: false
+    create: true
   zookeeper:
-    create: false
+    create: true
