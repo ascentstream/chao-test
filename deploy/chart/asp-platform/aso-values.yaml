@@ -27,6 +27,12 @@ replicaCount: 1
 namespace: ""
 namespaceCreate: false
 
+deploy:
+  # "default" = single cluster or member cluster in multi-cluster
+  type: "default"
+
+clusterDomain: "cluster.local"
+
 operator:
   image:
     repository: "ascentstream/asp-operator"
@@ -117,14 +123,10 @@ workers: 1
 terminationGracePeriodSeconds: 10
 rbac:
   create: true
+  namespaced: false
+  managedNamespaces: ""
+  rules: []
+  storageClass: true
 
 crds:
   install: true
-  bookkeeper:
-    create: true
-  broker:
-    create: true
-  proxy:
-    create: true
-  zookeeper:
-    create: true
