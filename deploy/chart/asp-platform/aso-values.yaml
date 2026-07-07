@@ -107,7 +107,8 @@ kubeRbacProxy:
       cpu: 5m
       memory: 64Mi
 
-imagePullSecrets: []
+imagePullSecrets:
+  - name: regcred
 nameOverride: ""
 fullnameOverride: ""
 
