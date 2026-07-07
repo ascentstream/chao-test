@@ -95,7 +95,7 @@ components:
   # proxy
   proxy: true
   # toolset
-  toolset: true
+  toolset: false
   # ascentstream console
   ascentstream_console: false
   # pulsar sql
