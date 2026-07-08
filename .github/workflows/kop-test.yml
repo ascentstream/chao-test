@@ -111,7 +111,7 @@ jobs:
           #            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-io-fault.yaml"
           #          },
           {
-            name: "eo-chaos-stress",
+            name: "alo-chaos-stress",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress.yaml"
           },
           {
@@ -131,11 +131,6 @@ jobs:
           path: /tmp
       - name: Load chao-test image
         run: docker load --input /tmp/chao-test.tar
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
-          password: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
 
       - uses: helm/kind-action@v1.5.0
         with:
@@ -232,11 +227,6 @@ jobs:
           path: /tmp
       - name: Load chao-test image
         run: docker load --input /tmp/chao-test.tar
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
-          password: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
 
       - uses: helm/kind-action@v1.5.0
         with:
@@ -364,11 +354,6 @@ jobs:
           path: /tmp
       - name: Load chao-test image
         run: docker load --input /tmp/chao-test.tar
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
-          password: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
 
       - uses: helm/kind-action@v1.5.0
         with:
