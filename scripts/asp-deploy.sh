@@ -16,29 +16,43 @@ export ASP_RELEASE_NAME=pulsar
 
 check_pod_status() {
     pod_name=$1
-
-    pod_exists=$(kubectl get pod $pod_name -n $ASP_NAMESPACE 2>/dev/null)
-
-    if [ -z "$pod_exists" ]; then
-        echo "Pod $pod_name not exit！"
-        exit 1
-    fi
-    count=0
     max_checks=120
     interval=5
+    count=0
+
+    # Phase 1: wait for the pod to be created (operator may not have
+    # created the StatefulSet yet, e.g. while broker becomes ready or
+    # metadata init is still running). Previously this exited immediately
+    # if the pod was missing on the first check.
+    echo "Waiting for pod $pod_name to be created..."
+    while ! kubectl get pod $pod_name -n $ASP_NAMESPACE >/dev/null 2>&1; do
+        kubectl get pod -n ${ASP_NAMESPACE} 2>/dev/null
+        sleep $interval
+        count=$((count + 1))
+        if [ $count -eq $max_checks ]; then
+            echo "Pod $pod_name was not created within $((max_checks * interval))s. Exiting."
+            kubectl get pod -n ${ASP_NAMESPACE}
+            exit 1
+        fi
+    done
+
+    echo "Pod $pod_name created. Waiting for Ready..."
+    count=0
     while true; do
-        echo "check pod status"
         pod_ready=$(kubectl get pod $pod_name -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' -n $ASP_NAMESPACE)
-        if [ "$pod_ready" == "True" ];  then
-            kubectl get pod  -n ${ASP_NAMESPACE} 
+        if [ "$pod_ready" == "True" ]; then
+            kubectl get pod -n ${ASP_NAMESPACE}
             break
         else
-            kubectl get pod  -n ${ASP_NAMESPACE}
+            kubectl get pod -n ${ASP_NAMESPACE}
             sleep $interval
             count=$((count + 1))
             if [ $count -eq $max_checks ]; then
-                kubectl -n $ASP_NAMESPACE logs $pod_name -c check-broker
-                echo "Maximum checks reached. Exiting."
+                echo "Pod $pod_name did not become Ready within $((max_checks * interval))s."
+                echo "=== describe ==="
+                kubectl -n $ASP_NAMESPACE describe pod $pod_name | tail -60
+                echo "=== init container logs ==="
+                kubectl -n $ASP_NAMESPACE logs $pod_name --all-containers --init-containers --tail=100
                 exit 1
             fi
         fi
@@ -58,18 +72,23 @@ function install()
     kubectl create secret docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=bot@ascentstream.com -n ${ASP_NAMESPACE}
 
     echo "installing asp-operator"
-    helm install ${ASO_RELEASE_NAME} ${RUNNING_DIR}/chart/asp-operator-0.3.3.tgz -n ${ASO_NAMESPACE} --values ${RUNNING_DIR}/chart/aso-values.yaml --create-namespace
-    kubectl get pod  -n ${ASO_NAMESPACE} 
+    helm install ${ASO_RELEASE_NAME} ${RUNNING_DIR}/chart/asp-operator-2.0.7.tgz -n ${ASO_NAMESPACE} --values ${RUNNING_DIR}/chart/aso-values.yaml --create-namespace
+    kubectl get pod  -n ${ASO_NAMESPACE}
     echo "installed asp-operator"
 
     echo "installing cert-manager"
     kubectl apply -f ${RUNNING_DIR}/chart/cert-manager.crds.yaml
     helm install ${CM_RELEASE_NAME} ${RUNNING_DIR}/chart/cert-manager-v1.12.1.tgz --create-namespace -n ${ASO_NAMESPACE} --values ${RUNNING_DIR}/chart/cm-values.yaml
-    kubectl get pod  -n ${ASO_NAMESPACE} 
+    kubectl get pod  -n ${ASO_NAMESPACE}
     echo "installed cert-manager"
 
     echo "installing as-plartform"
-    helm install ${ASP_RELEASE_NAME} ${RUNNING_DIR}/chart/asp-0.7.1.tgz --set initialize=true --set namespace=${ASP_NAMESPACE} --create-namespace -n ${ASP_NAMESPACE} --values ${RUNNING_DIR}/chart/asp-values.yaml
+    helm install ${ASP_RELEASE_NAME} ${RUNNING_DIR}/chart/asp-2.0.2.tgz \
+        --set initialize=true \
+        --set namespace=${ASP_NAMESPACE} \
+        --set global.aspImageTag=${PLATFORM_IMAGE_TAG} \
+        --create-namespace -n ${ASP_NAMESPACE} \
+        --values ${RUNNING_DIR}/chart/asp-values.yaml
     kubectl get pod  -n ${ASP_NAMESPACE} 
     echo "installed as-plartform"
 
@@ -87,7 +106,7 @@ function uninstall()
     echo "uninstalled as-plartform"
 
     echo "uninstalling cert-manager"
-    kubectl delete -f ${RUNNING_DIR}/pulsar-cluster/chart/cert-manager.crds.yaml
+    kubectl delete -f ${RUNNING_DIR}/chart/cert-manager.crds.yaml
     helm uninstall ${CM_RELEASE_NAME}  -n ${ASO_NAMESPACE}
     echo "uninstalled cert-manager"
 
@@ -109,9 +128,6 @@ function init_env()
 {
   mkdir -p ${BASE_DIR}/running/chart
   cp -f ${BASE_DIR}/../deploy/chart/asp-platform/* ${BASE_DIR}/running/chart
-  old_str="2.10.7.1"
-  new_str=${PLATFORM_IMAGE_TAG}
-  sed -i "s/$old_str/$new_str/g" ${BASE_DIR}/running/chart/asp-values.yaml
 }
 
 

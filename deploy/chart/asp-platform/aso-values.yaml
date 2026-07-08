@@ -27,10 +27,19 @@ replicaCount: 1
 namespace: ""
 namespaceCreate: false
 
+deploy:
+  # Specifies which cases the operator should be deployed in, available options are:
+  # "default", indicates the operator should be deployed in the normal single cluster or in the member cluster within a multi-cluster.
+  # "host", indicates the operator should be deployed in the host cluster within a multi-cluster.
+  # "control", indicates the operator should be deployed in the control-plane cluster within a multi-cluster.
+  type: "default"
+
+clusterDomain: "cluster.local"
+
 operator:
   image:
     repository: "ascentstream/asp-operator"
-    tag: "v0.3.3"
+    tag: "v2.0.8-rc0"
     pullPolicy: "IfNotPresent"
   resources:
     limits:
@@ -41,25 +50,49 @@ operator:
       memory: 64Mi
   livenessProbe:
     failureThreshold: 3
-    httpGet:
-      path: /healthz
-      port: 8081
-      scheme: HTTP
+    exec:
+      command: ["/manager", "--healthcheck"]
     initialDelaySeconds: 15
     periodSeconds: 20
     successThreshold: 1
     timeoutSeconds: 1
   readinessProbe:
     failureThreshold: 3
-    httpGet:
-      path: /readyz
-      port: 8081
-      scheme: HTTP
+    exec:
+      command: ["/manager", "--healthcheck"]
     initialDelaySeconds: 5
     periodSeconds: 10
     successThreshold: 1
     timeoutSeconds: 1
   extraEnv: []
+
+multicluster:
+  enabled: false
+  syncEndpointSlice: false
+  kubeconfig: ""
+  interpreterWebhook:
+    namespace: "karmada-system"
+    replicas: 1
+    service:
+      type: ClusterIP
+      port: 443
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+    certSecretName: "karmada-webhook-cert"
+    kubeconfigSecretName: "kubeconfig"
+  webhookConfiguration:
+    caBundle: ""
+
+configuration:
+  clusterDomainMappings:
+#    member1: "cluster01.local"
+#    member2: "cluster02.local"
+#    member3: "cluster03.local"
 
 kubeRbacProxy:
   image:
@@ -91,7 +124,7 @@ serviceAccount:
 podAnnotations: {}
 
 podSecurityContext: {}
-  # fsGroup: 2000
+# fsGroup: 2000
 
 securityContext:
   allowPrivilegeEscalation: false
@@ -113,14 +146,15 @@ workers: 1
 terminationGracePeriodSeconds: 10
 rbac:
   create: true
+  # Restrict the controller to operate only in a single namespace instead of cluster-wide scope.
+  namespaced: false
+  # Additional namespaces to be monitored by the controller.
+  # Use string format, separated by commas, e.g. "namespace1,namespace2".
+  managedNamespaces: ""
+  # Additional user rules for the controller's rbac
+  rules: []
+  # Specifies whether a ClusterRole and ClusterRoleBinding should be created for storageClass
+  storageClass: true
 
 crds:
   install: true
-  bookkeeper:
-    create: false
-  broker:
-    create: false
-  proxy:
-    create: false
-  zookeeper:
-    create: false
