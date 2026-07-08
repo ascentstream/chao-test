@@ -1117,7 +1117,7 @@ broker:
   #    - my-pulsar-service-aop.example.com
   #    - my-pulsar-service-mop.example.com
   kop:
-    enabled: false
+    enabled: true
     tls:
       enabled: false
       # trustCertsEnabled controls the kop configuration item kopSslTruststoreLocation=/xxx/truststore.jks

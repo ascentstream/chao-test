@@ -5,7 +5,7 @@ on:
       as-platform-image-tag:
         description: 'Please input as-platform image tag'
         required: true
-        default: '2.10.7.4'
+        default: '4.0.11.0'
         type: string
       send-msg-count:
         description: 'Please enter the number of messages to send'
@@ -31,8 +31,34 @@ env:
   GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
 
 jobs:
-  alt-chao:
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout chao-test codebase
+        uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Build jar
+        run: mvn clean package
+      - name: Build docker image
+        run: |
+          docker build -t chao-test:latest .
+          docker save chao-test:latest -o /tmp/chao-test.tar
+      - name: Upload docker image
+        uses: actions/upload-artifact@v4
+        with:
+          name: chao-test-image
+          path: /tmp/chao-test.tar
+          retention-days: 1
+
+  alo-chao:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
     env:
       REPO_PATH: ${{ github.workspace }}
       RELEASE_BRANCH: ${{ github.event.inputs.branch }}
@@ -87,7 +113,7 @@ jobs:
           #            chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-io-fault.yaml"
           #          },
           {
-            name: "eo-chaos-stress",
+            name: "alo-chaos-stress",
             chaos-mesh-config: "deploy/chaos-mesh/chaos-mesh-stress.yaml"
           },
           {
@@ -98,78 +124,24 @@ jobs:
 
     steps:
       - name: Checkout chao-test codebase
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v3
+      - name: Download chao-test image
+        uses: actions/download-artifact@v4
         with:
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          java-version: ${{ env.JAVA_VERSION }}
-      - name: Build
-        run: mvn clean package
-      - name: Build docker
-        uses: docker/build-push-action@v3
+          name: chao-test-image
+          path: /tmp
+      - uses: ./.github/actions/run-chaos-test
         with:
-          context: .
-          push: false
-          tags: chao-test:latest
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
-          password: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
-
-      - uses: helm/kind-action@v1.5.0
-        with:
-          cluster_name: kind
-          kubectl_version: v1.25.5
-
-      - name: deploy as-platform
-        run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
-      - name: deploy chaos-mesh
-        run: |
-          curl -sSL https://mirrors.chaos-mesh.org/v2.7.0/install.sh | bash -s -- --local kind --kind-version v0.17.0 --name kind  --k8s-version  1.25.3
-          kubectl get pod  -n chaos-mesh
-      - name: ${{ matrix.test.name }}
-        run: |
-          kind load docker-image chao-test:latest
-          ${{ env.REPO_PATH }}/scripts/run-chao-test.sh
-          kubectl -n pulsar-cluster get pods
-      - name: injecting faults
-        run: |
-          sleep 30
-          kubectl -n chaos-mesh apply -f ${{ matrix.test.chaos-mesh-config }}
-          echo "get chaos-mesh workflow "
-          kubectl -n chaos-mesh get workflow
-          echo "get chaos-mesh workflownode "
-          kubectl -n chaos-mesh get workflownode --selector="chaos-mesh.org/workflow=asp-platform"
-      - name: Wait for workflow completion
-        run:  ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
+          test-name: ${{ matrix.test.name }}
+          chaos-mesh-config: ${{ matrix.test.chaos-mesh-config }}
+          repo-path: ${{ env.REPO_PATH }}
 
       - name: package reports
         if: failure()
-        run: |
-          rm -rf artifacts
-          mkdir artifacts
-          mkdir artifacts/chao-test
-          mkdir artifacts/pulsar
-          current_dir=$PWD
-          kubectl -n pulsar-cluster logs chao-test > ${current_dir}/artifacts/chao-test/chao-test.log
-          ${{ env.REPO_PATH }}/scripts/cp-logs-from-kind.sh  ${current_dir}/artifacts/chao-test
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-2.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
-          kubectl -n pulsar-cluster exec pulsar-asp-broker-0 -- jmap -dump:live,format=b,file=/pulsar/heap-pulsar-asp-broker-0.bin 1
-          kubectl cp pulsar-cluster/pulsar-asp-broker-0:/pulsar/heap-pulsar-asp-broker-0.bin ${current_dir}/artifacts/pulsar/heap-pulsar-asp-broker-0.bin
-          kubectl -n pulsar-cluster exec pulsar-asp-broker-1 -- jmap -dump:live,format=b,file=/pulsar/heap-pulsar-asp-broker-1.bin 1
-          kubectl cp pulsar-cluster/pulsar-asp-broker-1:/pulsar/heap-pulsar-asp-broker-1.bin ${current_dir}/artifacts/pulsar/heap-pulsar-asp-broker-1.bin
-          zip -r artifacts-${{ matrix.test.name }}.zip artifacts
+        run: ${{ env.REPO_PATH }}/scripts/collect-artifacts.sh "${{ matrix.test.name }}" true
 
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v4
         name: upload reports
         if: failure()
         with:
@@ -177,7 +149,9 @@ jobs:
           path: artifacts-${{ matrix.test.name }}.zip
 
   idempotence-chao:
+    needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     env:
       REPO_PATH: ${{ github.workspace }}
       RELEASE_BRANCH: main
@@ -203,88 +177,34 @@ jobs:
 
     steps:
       - name: Checkout chao-test codebase
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v3
+      - name: Download chao-test image
+        uses: actions/download-artifact@v4
         with:
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          java-version: ${{ env.JAVA_VERSION }}
-      - name: Build
-        run: mvn clean package
-      - name: Build docker
-        uses: docker/build-push-action@v3
+          name: chao-test-image
+          path: /tmp
+      - uses: ./.github/actions/run-chaos-test
         with:
-          context: .
-          push: false
-          tags: chao-test:latest
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
-          password: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
-
-      - uses: helm/kind-action@v1.5.0
-        with:
-          cluster_name: kind
-          kubectl_version: v1.25.5
-
-      - name: deploy as-platform
-        run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
-      - name: deploy chaos-mesh
-        run: |
-          curl -sSL https://mirrors.chaos-mesh.org/v2.7.0/install.sh | bash -s -- --local kind --kind-version v0.17.0 --name kind  --k8s-version  1.25.3
-          kubectl get pod  -n chaos-mesh
-      - name: ${{ matrix.test.name }}
-        run: |
-          kind load docker-image chao-test:latest
-          ${{ env.REPO_PATH }}/scripts/run-chao-test.sh
-          kubectl -n pulsar-cluster get pods
-      - name: injecting faults
-        run: |
-          sleep 30
-          kubectl -n chaos-mesh apply -f ${{ matrix.test.chaos-mesh-config }}
-          echo "get chaos-mesh workflow "
-          kubectl -n chaos-mesh get workflow
-          echo "get chaos-mesh workflownode "
-          kubectl -n chaos-mesh get workflownode --selector="chaos-mesh.org/workflow=asp-platform"
-      - name: Wait for workflow completion
-        run: ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
+          test-name: ${{ matrix.test.name }}
+          chaos-mesh-config: ${{ matrix.test.chaos-mesh-config }}
+          repo-path: ${{ env.REPO_PATH }}
 
       - name: package reports
         if: failure()
-        run: |
-          rm -rf artifacts
-          mkdir artifacts
-          mkdir artifacts/chao-test
-          mkdir artifacts/pulsar
-          current_dir=$PWD
-          kubectl -n pulsar-cluster logs chao-test > ${current_dir}/artifacts/chao-test/chao-test.log
-          ${{ env.REPO_PATH }}/scripts/cp-logs-from-kind.sh  ${current_dir}/artifacts/chao-test
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-2.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
-          kubectl -n pulsar-cluster exec pulsar-asp-broker-0 -- jmap -dump:live,format=b,file=/pulsar/heap-pulsar-asp-broker-0.bin 1
-          kubectl cp pulsar-cluster/pulsar-asp-broker-0:/pulsar/heap-pulsar-asp-broker-0.bin ${current_dir}/artifacts/pulsar/heap-pulsar-asp-broker-0.bin
-          kubectl -n pulsar-cluster exec pulsar-asp-broker-1 -- jmap -dump:live,format=b,file=/pulsar/heap-pulsar-asp-broker-1.bin 1
-          kubectl cp pulsar-cluster/pulsar-asp-broker-1:/pulsar/heap-pulsar-asp-broker-1.bin ${current_dir}/artifacts/pulsar/heap-pulsar-asp-broker-1.bin
-          zip -r artifacts-${{ matrix.test.name }}.zip artifacts
+        run: ${{ env.REPO_PATH }}/scripts/collect-artifacts.sh "${{ matrix.test.name }}" true
 
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v4
         name: upload reports
         if: failure()
         with:
           name: artifacts-${{ matrix.test.name }}
           path: artifacts-${{ matrix.test.name }}.zip
   eo-chao:
+    needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     env:
-      JAVA_VERSION: 17
-      JAVA_DISTRIBUTION: temurin
       REPO_PATH: ${{ github.workspace }}
       AS_PLATFORM_IMAGE_TAG: ${{ github.event.inputs.as-platform-image-tag }}
       REGISTRY_USERNAME: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
@@ -341,78 +261,24 @@ jobs:
 
     steps:
       - name: Checkout chao-test codebase
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v3
+      - name: Download chao-test image
+        uses: actions/download-artifact@v4
         with:
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          java-version: ${{ env.JAVA_VERSION }}
-      - name: Build
-        run: mvn clean package
-      - name: Build docker
-        uses: docker/build-push-action@v3
+          name: chao-test-image
+          path: /tmp
+      - uses: ./.github/actions/run-chaos-test
         with:
-          context: .
-          push: false
-          tags: chao-test:latest
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.ASCENTSTREAM_DOCKER_USERNAME }}
-          password: ${{ secrets.ASCENTSTREAM_DOCKER_PASSWORD }}
-
-      - uses: helm/kind-action@v1.5.0
-        with:
-          cluster_name: kind
-          kubectl_version: v1.25.5
-
-      - name: deploy as-platform
-        run: ${{ env.REPO_PATH }}/scripts/ci.sh deploy_as_platform
-      - name: deploy chaos-mesh
-        run: |
-          curl -sSL https://mirrors.chaos-mesh.org/v2.7.0/install.sh | bash -s -- --local kind --kind-version v0.17.0 --name kind  --k8s-version  1.25.3
-          kubectl get pod  -n chaos-mesh
-      - name: ${{ matrix.test.name }}
-        run: |
-          kind load docker-image chao-test:latest
-          ${{ env.REPO_PATH }}/scripts/run-chao-test.sh
-          kubectl -n pulsar-cluster get pods
-      - name: injecting faults
-        run: |
-          sleep 30
-          kubectl -n chaos-mesh apply -f ${{ matrix.test.chaos-mesh-config }}
-          echo "get chaos-mesh workflow "
-          kubectl -n chaos-mesh get workflow
-          echo "get chaos-mesh workflownode "
-          kubectl -n chaos-mesh get workflownode --selector="chaos-mesh.org/workflow=asp-platform"
-      - name: Wait for workflow completion
-        run: ${{ env.REPO_PATH }}/scripts/wait-workflow-completion.sh
+          test-name: ${{ matrix.test.name }}
+          chaos-mesh-config: ${{ matrix.test.chaos-mesh-config }}
+          repo-path: ${{ env.REPO_PATH }}
 
       - name: package reports
         if: failure()
-        run: |
-          rm -rf artifacts
-          mkdir artifacts
-          mkdir artifacts/chao-test
-          mkdir artifacts/pulsar
-          current_dir=$PWD
-          kubectl -n pulsar-cluster logs chao-test > ${current_dir}/artifacts/chao-test/chao-test.log
-          ${{ env.REPO_PATH }}/scripts/cp-logs-from-kind.sh  ${current_dir}/artifacts/chao-test
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-broker-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-broker-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-bookie-2 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-bookie-2.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-0 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-0.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-1 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-1.log
-          kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 --since=0 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
-          kubectl -n pulsar-cluster exec pulsar-asp-broker-0 -- jmap -dump:live,format=b,file=/pulsar/heap-pulsar-asp-broker-0.bin 1
-          kubectl cp pulsar-cluster/pulsar-asp-broker-0:/pulsar/heap-pulsar-asp-broker-0.bin ${current_dir}/artifacts/pulsar/heap-pulsar-asp-broker-0.bin
-          kubectl -n pulsar-cluster exec pulsar-asp-broker-1 -- jmap -dump:live,format=b,file=/pulsar/heap-pulsar-asp-broker-1.bin 1
-          kubectl cp pulsar-cluster/pulsar-asp-broker-1:/pulsar/heap-pulsar-asp-broker-1.bin ${current_dir}/artifacts/pulsar/heap-pulsar-asp-broker-1.bin
-          zip -r artifacts-${{ matrix.test.name }}.zip artifacts
+        run: ${{ env.REPO_PATH }}/scripts/collect-artifacts.sh "${{ matrix.test.name }}" true
 
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v4
         name: upload reports
         if: failure()
         with:
