@@ -59,13 +59,13 @@ function install()
 
     echo "installing asp-operator"
     helm install ${ASO_RELEASE_NAME} ${RUNNING_DIR}/chart/asp-operator-2.0.7.tgz -n ${ASO_NAMESPACE} --values ${RUNNING_DIR}/chart/aso-values.yaml --create-namespace
-    kubectl get pod  -n ${ASO_NAMESPACE} 
+    kubectl get pod  -n ${ASO_NAMESPACE}
     echo "installed asp-operator"
 
     echo "installing cert-manager"
     kubectl apply -f ${RUNNING_DIR}/chart/cert-manager.crds.yaml
     helm install ${CM_RELEASE_NAME} ${RUNNING_DIR}/chart/cert-manager-v1.12.1.tgz --create-namespace -n ${ASO_NAMESPACE} --values ${RUNNING_DIR}/chart/cm-values.yaml
-    kubectl get pod  -n ${ASO_NAMESPACE} 
+    kubectl get pod  -n ${ASO_NAMESPACE}
     echo "installed cert-manager"
 
     echo "installing as-plartform"
@@ -87,7 +87,7 @@ function uninstall()
     echo "uninstalled as-plartform"
 
     echo "uninstalling cert-manager"
-    kubectl delete -f ${RUNNING_DIR}/pulsar-cluster/chart/cert-manager.crds.yaml
+    kubectl delete -f ${RUNNING_DIR}/chart/cert-manager.crds.yaml
     helm uninstall ${CM_RELEASE_NAME}  -n ${ASO_NAMESPACE}
     echo "uninstalled cert-manager"
 
@@ -109,7 +109,7 @@ function init_env()
 {
   mkdir -p ${BASE_DIR}/running/chart
   cp -f ${BASE_DIR}/../deploy/chart/asp-platform/* ${BASE_DIR}/running/chart
-  old_str="2.10.7.1"
+  old_str="2.10.7.5"
   new_str=${PLATFORM_IMAGE_TAG}
   sed -i "s/$old_str/$new_str/g" ${BASE_DIR}/running/chart/asp-values.yaml
 }

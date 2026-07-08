@@ -39,7 +39,7 @@ clusterDomain: "cluster.local"
 operator:
   image:
     repository: "ascentstream/asp-operator"
-    tag: "v2.0.7"
+    tag: "v2.0.8-rc0"
     pullPolicy: "IfNotPresent"
   resources:
     limits:
