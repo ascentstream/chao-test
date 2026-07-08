@@ -150,7 +150,7 @@ jobs:
           kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
           zip -r artifacts-${{ matrix.test.name }}.zip artifacts
 
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v4
         name: upload reports
         if: failure()
         with:
@@ -251,7 +251,7 @@ jobs:
           kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
           zip -r artifacts-${{ matrix.test.name }}.zip artifacts
 
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v4
         name: upload reports
         if: failure()
         with:
@@ -386,7 +386,7 @@ jobs:
           kubectl -n pulsar-cluster logs pulsar-asp-zookeeper-2 > ${current_dir}/artifacts/pulsar/pulsar-asp-zookeeper-2.log
           zip -r artifacts-${{ matrix.test.name }}.zip artifacts
 
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v4
         name: upload reports
         if: failure()
         with:
