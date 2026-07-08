@@ -1,0 +1,62 @@
+name: 'Run chaos test'
+description: |
+  Shared workflow for chao-test matrix jobs: loads the pre-built docker
+  image, provisions a kind cluster, deploys the asp-platform and
+  chaos-mesh, runs the test, injects the configured fault, and waits
+  for the chaos-mesh workflow to finish.
+
+inputs:
+  test-name:
+    description: 'Matrix test name (used for human-readable step names)'
+    required: true
+  chaos-mesh-config:
+    description: 'Path to the chaos-mesh workflow YAML to apply'
+    required: true
+  repo-path:
+    description: 'Repository root on the runner ($REPO_PATH)'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Load chao-test image
+      run: docker load --input /tmp/chao-test.tar
+      shell: bash
+
+    - name: Create kind cluster
+      uses: helm/kind-action@v1.5.0
+      with:
+        cluster_name: kind
+        kubectl_version: v1.25.5
+
+    - name: Deploy asp-platform
+      run: ${{ inputs.repo-path }}/scripts/ci.sh deploy_as_platform
+      shell: bash
+
+    - name: Deploy chaos-mesh
+      run: |
+        curl -sSL https://mirrors.chaos-mesh.org/v2.7.0/install.sh | \
+          bash -s -- --local kind --kind-version v0.17.0 --name kind --k8s-version 1.25.3
+        kubectl get pod -n chaos-mesh
+      shell: bash
+
+    - name: Run chao-test (${{ inputs.test-name }})
+      run: |
+        kind load docker-image chao-test:latest
+        ${{ inputs.repo-path }}/scripts/run-chao-test.sh
+        kubectl -n pulsar-cluster get pods
+      shell: bash
+
+    - name: Inject chaos fault
+      run: |
+        sleep 30
+        kubectl -n chaos-mesh apply -f ${{ inputs.chaos-mesh-config }}
+        echo "chaos-mesh workflows:"
+        kubectl -n chaos-mesh get workflow
+        echo "chaos-mesh workflownodes:"
+        kubectl -n chaos-mesh get workflownode --selector="chaos-mesh.org/workflow=asp-platform"
+      shell: bash
+
+    - name: Wait for workflow completion
+      run: ${{ inputs.repo-path }}/scripts/wait-workflow-completion.sh
+      shell: bash
