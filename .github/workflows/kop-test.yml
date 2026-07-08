@@ -44,12 +44,9 @@ jobs:
       - name: Build jar
         run: mvn clean package
       - name: Build docker image
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          push: false
-          tags: chao-test:latest
-          outputs: type=docker,dest=/tmp/chao-test.tar
+        run: |
+          docker build -t chao-test:latest .
+          docker save chao-test:latest -o /tmp/chao-test.tar
       - name: Upload docker image
         uses: actions/upload-artifact@v4
         with:
