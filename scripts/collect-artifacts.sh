@@ -53,7 +53,9 @@ for role in broker bookie zookeeper; do
     echo "  logs: $pod_name"
     kubectl -n "$NAMESPACE" logs "$pod_name" $LOG_FLAGS \
       > "$CURRENT_DIR/artifacts/pulsar/$pod_name.log" 2>&1 || true
-  done < <(kubectl -n "$NAMESPACE" get pods -l "app=pulsar-asp-${role}" -o name 2>/dev/null)
+  done < <(kubectl -n "$NAMESPACE" get pods \
+            -l "cluster=pulsar-asp,component=${role},!job-name" \
+            -o name 2>/dev/null)
 done
 
 # 3. Optional heap dumps from broker pods (kop-test / per-hour)
@@ -67,7 +69,7 @@ if [ "$WITH_HEAP" == "true" ]; then
       jmap -dump:live,format=b,file="$heap_path" 1 || true
     kubectl cp "$NAMESPACE/${pod_name}:${heap_path}" \
       "$CURRENT_DIR/artifacts/pulsar/heap-${pod_name}.bin" || true
-  done < <(kubectl -n "$NAMESPACE" get pods -l "app=pulsar-asp-broker" -o name 2>/dev/null)
+  done < <(kubectl -n "$NAMESPACE" get pods -l "cluster=pulsar-asp,component=broker" -o name 2>/dev/null)
 fi
 
 # 4. Zip everything for upload-artifact

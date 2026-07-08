@@ -19,6 +19,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout chao-test codebase
         uses: actions/checkout@v4
@@ -43,6 +44,7 @@ jobs:
   alo-chao:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     env:
       REPO_PATH: ${{ github.workspace }}
       RELEASE_BRANCH: main
@@ -135,6 +137,7 @@ jobs:
   idempotence-chao:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     env:
       REPO_PATH: ${{ github.workspace }}
       RELEASE_BRANCH: main
@@ -186,6 +189,7 @@ jobs:
   eo-chao:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     env:
       REPO_PATH: ${{ github.workspace }}
       AS_PLATFORM_IMAGE_TAG: chao-test-latest
